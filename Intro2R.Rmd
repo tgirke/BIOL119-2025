@@ -1,0 +1,144 @@
+---
+title: 'BIOL119-2024: Learning R Basics with an Example'
+author: 'Author: Your Name'
+date: "Last update: `r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: yes
+    toc_depth: 3
+    fig_caption: yes
+    code_folding: show
+    number_sections: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+  word_document:
+    toc: yes
+    toc_depth: '3'
+fontsize: 14pt
+bibliography: bibtex.bib
+type: docs
+weight: 304
+editor_options: 
+  chunk_output_type: console
+---
+
+<!---
+- Compile from command-line
+Rscript -e "rmarkdown::render('Intro2R.Rmd', c('html_document'), clean=FALSE)"
+-->
+
+# Import of Table 
+
+The following provides a very brief introduction to R using a tabular file as an example [@manualr]. 
+As tabular file, a test data set within R called `iris` will be written to a file. After 
+executing the following `write.table` command, a new file named `iris.tab` will appear in 
+the File browser panel. From within RStudio Cloud this file can be downloaded with the 
+Export option in the same panel. For learning purposes, also try this example with your
+own tabular file, e.g. exported from Excel or Google Sheets.
+
+```{r write_iris, eval=TRUE, message=FALSE}
+write.table(iris, file="iris.tab", row.names=FALSE, quote=FALSE, sep="\t") 
+```
+
+Next, the exported sample file will be imported into R with the `read.delim` function. 
+The data will be assigned to an object named `df`. The assignment operator `<-` will be
+used for this. The class of the resulting object is a `data.frame`. Its dimensions can
+be checked with the `dim` function, returning here 150 rows and 5 columns. To print only
+the first 4 rows to the screen, one can use the subsetting operator `[1:4 , ]`.
+With `[1:4, 1:2]` one can subset the object to the first 4 rows and first 2
+columns.
+
+```{r import_and_inspect, eval=TRUE, message=FALSE}
+df <- read.delim("iris.tab")
+class(df)
+dim(df)
+df[1:4,]
+df[1:4, 1:2]
+```
+
+## Nicer tables
+
+To print nicer tables, in the R Markdown `html` report, the `kable` function from the knitr package can be used.
+
+```{r}
+library(knitr)
+kable(df[1:4,])
+```
+
+
+# Basic Calculations
+
+The following performs some basic calculations on the imported tabular file. First, the `df`
+is converted to a numeric `matrix` named `ma`, and then the mean (sum) is calculated for the 
+first row as well as for all rows using the `mean` and `rowMeans` functions, respectively.
+
+
+```{r calculations, eval=TRUE, message=FALSE}
+ma <- data.matrix(df[,-5])
+class(ma)
+ma[1:4,]
+mean(ma[1,])
+rowMeans(ma)[1:10] # prints first 10 of 150 values
+rowSums(ma)[1:10] # prints first 10 of 150 values
+```
+
+# Basic Plots
+
+The following creates a simple barplot for the first row in `ma` using the `barplot` function of base R.  
+
+```{r plotting, eval=TRUE, message=FALSE}
+barplot(ma[1,])
+```
+
+# Nicer Plots with `ggplot2`
+
+Much nicer plots can be generated with the `ggplot2` package. Additional examples for `ggplot2` functionalities can be found [here](https://rb.gy/2f9pr).
+
+```{r ggplot_plotting, eval=TRUE, message=FALSE}
+library(ggplot2)
+df_mean <- aggregate(df[,1:4], by=list(Species=df$Species), FUN=mean)
+df_mean
+df_mean <- tidyr::pivot_longer(df_mean, !Species, names_to="Samples", values_to="Values")
+p <- ggplot(df_mean, aes(Samples, Values, fill = Species)) + 
+        geom_bar(position="dodge", stat="identity")
+p
+```
+
+Plots can be saved to files in different graphics formats using the R functions with the corresponding
+names, including: `pdf`, `svg`, `tiff`, `png`, `jpg`, etc. The file name is specified under the
+the first argument (here `myplot.png`).
+
+```{r save_plot, eval=TRUE, message=FALSE}
+png("myplot.png")
+p
+dev.off()
+```
+
+# Important Utilities
+
+## Help
+
+The help files for R functions can be opened by typing `?` followed by the name of the functions.
+For instance, `?t.test` will open the help file for the Student's t-Test function in R.
+
+## Packages
+
+Many R packages (libraries) can be installed with the `install.packages` or the `BiocManager::install` functions. Before a package can be used, it needs to be loaded with the `library` function. Most of the relevant details for package installs are explained [here](https://rb.gy/8yl3y).
+
+## Tutorials
+
+Many tutorials and books are available for learning R. Here is a detailed [tutorial](https://girke.bioinformatics.ucr.edu/GEN242/tutorials/rbasics/rbasics/) 
+of the UCR GEN242 class. Additional tutorials are linked on this  [page](https://pairach.com/2012/02/26/r-tutorials-from-universities-around-the-world/).
+
+
+# Session Info
+
+```{r sessionInfo}
+sessionInfo()
+```
+
+# References
