@@ -5,6 +5,6 @@ source code of this repos is [here](https://github.com/tgirke/BIOL119-2025).
 These are the links to open the renderd HTML vignettes included in the repos:
 
 1. [Intro2R.html](https://girke.bioinformatics.ucr.edu/BIOL119-2025/Intro2R.html)
-2. [phyloAnalysis.html]() -> to be added...
+2. [phyloAnalysis.html](https://girke.bioinformatics.ucr.edu/BIOL119-2025/phyloAnalysis.html)
 3. [exprAnalyisDemo.html](https://girke.bioinformatics.ucr.edu/BIOL119-2025/exprAnalyisDemo.html)
 
