@@ -111,7 +111,7 @@ msa_ClustalOmega.ape = msaConvert(msa_ClustalOmega, type="ape::AAbin") #conversi
 # Create Phylogenetic Tree with Bootstrap Support (using `ape`)
 
 ```{r example6, eval=TRUE, message=FALSE}
-ape_tree_file = "rentrez-msa_ClustalOmega-P450_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png" #for OUTPUT, not input
+ape_tree_file = "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png" #for OUTPUT, not input
 
 tree_function = function(x) nj(dist.aa(x))
 bootstrap_n = 100 #should really use at least 1000, but we are reducing time and resources
