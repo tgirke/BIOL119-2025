@@ -59,6 +59,7 @@ suppressPackageStartupMessages({
 	library(seqinr)#to create intermediate FASTA file
 	library(msa)
 	library(ape)
+  library(Biostrings)
 })
 ```
 
@@ -106,6 +107,9 @@ P450_SeqObj = readAAStringSet(FASTA_file)
 
 msa_ClustalOmega = msa(P450_SeqObj, method = "ClustalOmega")
 msa_ClustalOmega.ape = msaConvert(msa_ClustalOmega, type="ape::AAbin") #conversion of R object for next step
+origMAlign <- readDNAMultipleAlignment(filepath = system.file("extdata",
+              "msx2_mRNA.aln", package = "Biostrings"), format = "clustal") # View multiple alignment in R
+origMAlign
 ```
 
 # Create Phylogenetic Tree with Bootstrap Support (using `ape`)
