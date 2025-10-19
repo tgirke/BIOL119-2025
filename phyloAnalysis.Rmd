@@ -67,7 +67,7 @@ As a practice to reduce additional text, `suppressPackageStartupMessages` is use
 # Define Gene IDs (using `rentrez`)
 
 ```{r example2, eval=TRUE, message=FALSE}
-result_ID_file = "sequence.gi"
+result_ID_file = "data/phyloAnalysis/sequence.gi"
 proteinIDs = readLines(result_ID_file)
 
 all_recs = entrez_fetch(db="protein", id=proteinIDs, rettype="fasta")
