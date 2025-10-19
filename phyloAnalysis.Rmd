@@ -1,0 +1,164 @@
+---
+title: 'BIOL119-2025: R-Based Phylogenetic Analysis'
+author: 'Author: Dr. Thomas Girke, Charles Warden, and Emily Vig'
+date: "Last update: `r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: yes
+      smooth_scroll: yes
+    toc_depth: 3
+    fig_caption: yes
+    code_folding: show
+    number_sections: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+  word_document:
+    toc: yes
+    toc_depth: '3'
+fontsize: 14pt
+bibliography: bibtex.bib
+type: docs
+weight: 304
+editor_options: 
+  chunk_output_type: console
+---
+
+<!---
+- Compile from command-line
+Rscript -e "rmarkdown::render('phyloAnalysis.Rmd', c('html_document'), clean=FALSE)"
+-->
+
+
+Most steps in the subsequent section can be accomplished with the web interface for [*Clustal Omega*](https://www.ebi.ac.uk/jdispatcher/msa/clustalo).
+
+However, one benefit to the **additional R code** (beyond reproducibility) is the additional of **bootstrap confidence**.
+
+# Creation of Input File
+
+ - Go to **[NCBI Protein](http://www.ncbi.nlm.nih.gov/protein)**, and run the following query: `P450 & hydroxylase & human [organism]`
+ - Select under “Source databases” **UniProtKB/SwissProt** as database.
+ - Save a *list of identifiers* (**GI List**) to your desktop via the "Send to" File drop down menu.
+
+**Please NOTE**: The abbreivation "GI" often stands for "Gene ID".  However, these are *not* Entrez Gene IDs.  Instead, it is more appropriate to consider these "Protein IDs."
+
+Because this is a deviation from SA2 (creation of identifier list *instead* of FASTA file), this screenshot helps illustrate the novel step:
+
+![Identifier Download](NCBI_Protein.png "Downloading List of Identifiers")
+
+The end result is to create a **sequence.gi** file.
+
+# Import Libraries
+
+```{r example1, eval=TRUE, message=FALSE}
+suppressPackageStartupMessages({
+	library(rentrez)
+	library(org.Hs.eg.db)
+	library(seqinr)#to create intermediate FASTA file
+	library(msa)
+	library(ape)
+})
+```
+
+As a practice to reduce additional text, `suppressPackageStartupMessages` is used in the code above.
+
+# Define Gene IDs (using `rentrez`)
+
+```{r example2, eval=TRUE, message=FALSE}
+result_ID_file = "sequence.gi"
+proteinIDs = readLines(result_ID_file)
+
+all_recs = entrez_fetch(db="protein", id=proteinIDs, rettype="fasta")
+linked_gene_IDs = entrez_link(dbfrom="protein", id=proteinIDs, db="gene")
+```
+
+# Define Gene Symbols (using `org.Hs.eg.db`)
+
+```{r example3, eval=TRUE, message=FALSE}
+gene_symbols = mapIds( x = org.Hs.eg.db, keys = linked_gene_IDs$links$protein_gene,
+					column = "SYMBOL", keytype = "ENTREZID")
+```
+
+# Create Reformatted Protein Object (using `seqinr` + custom code)
+
+```{r example4, eval=TRUE, message=FALSE}
+FASTA_file = "rentrez-P450_UniProtKB_SwissProt-gene_symbol.fasta" # for OUTPUT, not input
+
+write(all_recs, file="TEMP.fasta") #used to assist with conversion between R objects
+
+temp_SeqObj = readAAStringSet("TEMP.fasta")
+temp_SeqObj.seq = as.character(temp_SeqObj)
+temp_SeqObj.seq = list()
+for (i in 1:length(temp_SeqObj)){
+	temp_SeqObj.seq[i]=as.character(temp_SeqObj)[i]
+}
+write.fasta(temp_SeqObj.seq, gene_symbols, file.out=FASTA_file)
+unlink("TEMP.fasta") # Delete temporary file
+
+```
+
+# Perform Multiple Sequence Alignment (using `msa`)
+
+```{r example5, eval=TRUE, message=FALSE}
+P450_SeqObj = readAAStringSet(FASTA_file)
+
+msa_ClustalOmega = msa(P450_SeqObj, method = "ClustalOmega")
+msa_ClustalOmega.ape = msaConvert(msa_ClustalOmega, type="ape::AAbin") #conversion of R object for next step
+```
+
+# Create Phylogenetic Tree with Bootstrap Support (using `ape`)
+
+```{r example6, eval=TRUE, message=FALSE}
+ape_tree_file = "rentrez-msa_ClustalOmega-P450_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png" #for OUTPUT, not input
+
+tree_function = function(x) nj(dist.aa(x))
+bootstrap_n = 100 #should really use at least 1000, but we are reducing time and resources
+
+msa_ClustalOmega.dist = dist.aa(msa_ClustalOmega.ape, pairwise.deletion = FALSE, scaled = FALSE)
+msa_ClustalOmega.tree = tree_function(msa_ClustalOmega.ape)
+msa_ClustalOmega.boot_obj = boot.phylo(msa_ClustalOmega.tree, msa_ClustalOmega.ape,
+								tree_function, B = bootstrap_n, trees = TRUE)
+msa_ClustalOmega.tree_clade = prop.clades(msa_ClustalOmega.tree, msa_ClustalOmega.boot_obj$trees, rooted = FALSE)
+msa_ClustalOmega.tree_boot = prop.clades(msa_ClustalOmega.tree, msa_ClustalOmega.boot_obj$trees)
+
+layout(1)
+par(mar = rep(2, 4))
+plot(msa_ClustalOmega.tree, main = "")
+drawSupportOnEdges(round(100 * msa_ClustalOmega.tree_boot / bootstrap_n))
+nodelabels(round(100* msa_ClustalOmega.tree_clade / bootstrap_n))
+legend("bottomleft", legend = c("Bipartitions", "Clades"), pch = 22,
+       pt.bg = c("green", "lightblue"), pt.cex = 2.5)
+```
+
+There are two lines that are removed, relative to `phyloAnalysis.R` (*png(ape_tree_file, height=1200, width=2000)* and *dev.off()*).  This is to enable visualization directly, without saving the image to a file.
+
+# Study Material for Homework
+
+<u>**Lecture LA6:**</u>
+<ul>
+ <li>Item 1
+	<ul>
+	 <li>Sub-Item A</li>
+	 <li>Sub-Item B</li>
+	</ul>
+ </li>
+ 
+ <li>Item 2</li>
+</ul>
+
+**<u>Procedures from This Assignment (SA4)</u>**:
+<ul>
+ <li>Item 1</li>
+ <li>Item 2</li>
+</ul>
+
+
+# Session Info
+
+```{r sessionInfo}
+sessionInfo()
+```
+
+# References
