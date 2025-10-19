@@ -46,7 +46,7 @@ However, one benefit to the **additional R code** (beyond reproducibility) is th
 
 Because this is a deviation from SA2 (creation of identifier list *instead* of FASTA file), this screenshot helps illustrate the novel step:
 
-![Identifier Download](NCBI_Protein.png "Downloading List of Identifiers")
+![Identifier Download](data/phyloAnalysis/NCBI_Protein.png "Downloading List of Identifiers")
 
 The end result is to create a **sequence.gi** file.
 
@@ -107,9 +107,6 @@ P450_SeqObj = readAAStringSet(FASTA_file)
 
 msa_ClustalOmega = msa(P450_SeqObj, method = "ClustalOmega")
 msa_ClustalOmega.ape = msaConvert(msa_ClustalOmega, type="ape::AAbin") #conversion of R object for next step
-origMAlign <- readDNAMultipleAlignment(filepath = system.file("extdata",
-              "msx2_mRNA.aln", package = "Biostrings"), format = "clustal") # View multiple alignment in R
-origMAlign
 ```
 
 # Create Phylogenetic Tree with Bootstrap Support (using `ape`)
@@ -136,7 +133,6 @@ legend("bottomleft", legend = c("Bipartitions", "Clades"), pch = 22,
        pt.bg = c("green", "lightblue"), pt.cex = 2.5)
 ```
 
-There are two lines that are removed, relative to `phyloAnalysis.R` (*png(ape_tree_file, height=1200, width=2000)* and *dev.off()*).  This is to enable visualization directly, without saving the image to a file.
 
 # Study Material for Homework
 
