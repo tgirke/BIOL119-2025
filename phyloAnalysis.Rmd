@@ -31,18 +31,13 @@ editor_options:
 Rscript -e "rmarkdown::render('phyloAnalysis.Rmd', c('html_document'), clean=FALSE)"
 -->
 
-
-Most steps in the subsequent section can be accomplished with the web interface for [*Clustal Omega*](https://www.ebi.ac.uk/jdispatcher/msa/clustalo).
-
-However, one benefit to the **additional R code** (beyond reproducibility) is the additional of **bootstrap confidence**.
-
 # Creation of Input File
 
  - Go to **[NCBI Protein](http://www.ncbi.nlm.nih.gov/protein)**, and run the following query: `P450 & hydroxylase & human [organism]`
  - Select under “Source databases” **UniProtKB/SwissProt** as database.
  - Save a *list of identifiers* (**GI List**) to your desktop via the "Send to" File drop down menu.
 
-**Please NOTE**: The abbreivation "GI" often stands for "Gene ID".  However, these are *not* Entrez Gene IDs.  Instead, it is more appropriate to consider these "Protein IDs."
+**Please NOTE**: The abbreviation "GI" often stands for "Gene ID".  However, these are *not* Entrez Gene IDs.  Instead, it is more appropriate to consider these "Protein IDs."
 
 Because this is a deviation from SA2 (creation of identifier list *instead* of FASTA file), this screenshot helps illustrate the novel step:
 
@@ -55,12 +50,15 @@ The end result is to create a **sequence.gi** file.
 ```{r example1, eval=TRUE, message=FALSE}
 suppressPackageStartupMessages({
 	library(rentrez)
+	library(Biostrings)
 	library(org.Hs.eg.db)
 	library(seqinr)#to create intermediate FASTA file
 	library(msa)
 	library(ape)
-  library(Biostrings)
+	library(pheatmap)
 })
+
+source("phyloAnalysis_Fct.R")
 ```
 
 As a practice to reduce additional text, `suppressPackageStartupMessages` is used in the code above.
@@ -69,45 +67,36 @@ As a practice to reduce additional text, `suppressPackageStartupMessages` is use
 
 ```{r example2, eval=TRUE, message=FALSE}
 result_ID_file = "data/phyloAnalysis/sequence.gi"
-proteinIDs = readLines(result_ID_file)
-
-all_recs = entrez_fetch(db="protein", id=proteinIDs, rettype="fasta")
-linked_gene_IDs = entrez_link(dbfrom="protein", id=proteinIDs, db="gene")
+linked_gene_IDs = geneID_wrapper(result_ID_file)
 ```
 
 # Define Gene Symbols (using `org.Hs.eg.db`)
 
 ```{r example3, eval=TRUE, message=FALSE}
-gene_symbols = mapIds( x = org.Hs.eg.db, keys = linked_gene_IDs$links$protein_gene,
+gene_symbols = mapIds( x = org.Hs.eg.db, keys = linked_gene_IDs,
 					column = "SYMBOL", keytype = "ENTREZID")
-```
-
-# Create Reformatted Protein Object (using `seqinr` + custom code)
-
-```{r example4, eval=TRUE, message=FALSE}
+					
 FASTA_file = "rentrez-P450_UniProtKB_SwissProt-gene_symbol.fasta" # for OUTPUT, not input
-
-write(all_recs, file="TEMP.fasta") #used to assist with conversion between R objects
-
-temp_SeqObj = readAAStringSet("TEMP.fasta")
-temp_SeqObj.seq = as.character(temp_SeqObj)
-temp_SeqObj.seq = list()
-for (i in 1:length(temp_SeqObj)){
-	temp_SeqObj.seq[i]=as.character(temp_SeqObj)[i]
-}
-write.fasta(temp_SeqObj.seq, gene_symbols, file.out=FASTA_file)
-unlink("TEMP.fasta") # Delete temporary file
-
+FASTA_symbol_wrapper(result_ID_file, gene_symbols, FASTA_file)
 ```
 
 # Perform Multiple Sequence Alignment (using `msa`)
 
-```{r example5, eval=TRUE, message=FALSE}
+The `msa` Bioconductor package [@bodenhofer2015msa] provides three options for alignments : *ClustalW* [@thompson1994clustal], *Clustal Omega* [@sievers2011fast], and *MUSCLE* [@edgar2004muscle].
+
+The "clustal" format is a popular format to represent Multiple Sequence Alignments (MSA), along with a gapped FASTA representation.  Because *Clustal Omega* is the more recent implementation, we have used that method for the MSA.
+
+Most steps can be accomplished with the web interface for [*Clustal Omega*](https://www.ebi.ac.uk/jdispatcher/msa/clustalo).
+
+However, one benefit to the **additional R code** (beyond reproducibility) is the additional of **bootstrap confidence**.  There is also some additional flexibility, such as being able to generate a heatmap from distance values (as shown in a later section).
+
+
+```{r example4, eval=TRUE, message=FALSE}
 P450_SeqObj = readAAStringSet(FASTA_file)
 
 msa_ClustalOmega = msa(P450_SeqObj, method = "ClustalOmega")
 
-#Visualize area around invariant C
+#Visualize Alignment Near Invariant Cysteine
 msa_basename = "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.msaPrettyPrint.pdf" #please note the folder that is saved for GitHub visualization
 msa_pdf = paste("./data/phyloAnalysis",msa_basename,sep="/") #please note the folder that is saved for GitHub visualization
 msaPrettyPrint(msa_ClustalOmega, file = msa_basename,
@@ -115,14 +104,28 @@ msaPrettyPrint(msa_ClustalOmega, file = msa_basename,
 			logoColors="rasmol", showLogo="top",
 			shadingMode="identical", shadingModeArg =c(50,90), shadingColors = "grays",
 			askForOverwrite=FALSE)
-file.copy(from = msa_basename, msa_pdf) #make sure that the PDF is saved in the intended location
+file_copy(msa_basename, msa_pdf) #make sure that the PDF is saved in the intended location
 
 msa_ClustalOmega.ape = msaConvert(msa_ClustalOmega, type="ape::AAbin") #conversion of R object for next step
 ```
 
-![P450 Visualization Created Using `msaPrettyPrint`](./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.msaPrettyPrint.pdf){width=65%}
+![P450 Visualization Created Using `msaPrettyPrint`](./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.msaPrettyPrint.pdf){width=100%}
+
+# Visualize Distance Matrix (using `pheatmap`)
+
+```{r example5, eval=TRUE, message=FALSE}
+msa_ClustalOmega.dist = dist.aa(msa_ClustalOmega.ape, pairwise.deletion = FALSE, scaled = FALSE)
+
+pheatmap(as.matrix(msa_ClustalOmega.dist))
+```
 
 # Create Phylogenetic Tree with Bootstrap Support (using `ape`)
+
+The following code performs phylogenetic analysis using the `ape` Bioconductor package [@paradis2004ape].  In general, `ape` provides functionality for phylogenetic contruction from a distance matrix using the method of Neighbor-Joining (NJ, [@trees1987neighbor]) or Unweighted Pair Group Method using Arithmetic Mean (UPGMA, [@sokal1958statistical]). 
+
+This example considers amino acid divergence.  However, nucleotide divergence can also be considered, and Maximum Likelihood (ML) can be used to compare nucleotide substitution models and generate the most likely tree [@felsenstein1981evolutionary].  It is also possible to create a ML tree with animo acid sequences, but the underlying model will not be for nucleotide substitution rates.
+
+Maximum Parsimony is another method that can be used.
 
 ```{r example6, eval=TRUE, message=FALSE}
 ape_tree_file = "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png" #for OUTPUT, not input
@@ -130,20 +133,7 @@ ape_tree_file = "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.boot
 tree_function = function(x) nj(dist.aa(x))
 bootstrap_n = 100 #should really use at least 1000, but we are reducing time and resources
 
-msa_ClustalOmega.dist = dist.aa(msa_ClustalOmega.ape, pairwise.deletion = FALSE, scaled = FALSE)
-msa_ClustalOmega.tree = tree_function(msa_ClustalOmega.ape)
-msa_ClustalOmega.boot_obj = boot.phylo(msa_ClustalOmega.tree, msa_ClustalOmega.ape,
-								tree_function, B = bootstrap_n, trees = TRUE)
-msa_ClustalOmega.tree_clade = prop.clades(msa_ClustalOmega.tree, msa_ClustalOmega.boot_obj$trees, rooted = FALSE)
-msa_ClustalOmega.tree_boot = prop.clades(msa_ClustalOmega.tree, msa_ClustalOmega.boot_obj$trees)
-
-layout(1)
-par(mar = rep(2, 4))
-plot(msa_ClustalOmega.tree, main = "")
-drawSupportOnEdges(round(100 * msa_ClustalOmega.tree_boot / bootstrap_n))
-nodelabels(round(100* msa_ClustalOmega.tree_clade / bootstrap_n))
-legend("bottomleft", legend = c("Bipartitions", "Clades"), pch = 22,
-       pt.bg = c("green", "lightblue"), pt.cex = 2.5)
+ape_bootstrap_wrapper(msa_ClustalOmega.ape, tree_function, bootstrap_n)
 ```
 
 
@@ -151,14 +141,9 @@ legend("bottomleft", legend = c("Bipartitions", "Clades"), pch = 22,
 
 <u>**Lecture LA6:**</u>
 <ul>
- <li>Item 1
-	<ul>
-	 <li>Sub-Item A</li>
-	 <li>Sub-Item B</li>
-	</ul>
- </li>
- 
- <li>Item 2</li>
+ <li>UPGMA / NJ Implementation</li>
+ <li>UPGMA / NJ Assumptions</li>
+ <li>Bootstrapping Support for Tree Generation</li>
 </ul>
 
 **<u>Procedures from This Assignment (SA4)</u>**:
@@ -175,3 +160,63 @@ sessionInfo()
 ```
 
 # References
+
+# Supplement
+
+## Wrapper for Gene ID Mapping
+
+```{r function1, eval=FALSE}
+geneID_wrapper = function(input_file){
+	proteinIDs = readLines(result_ID_file)
+
+	linked_gene_IDs.unlisted = unlist(entrez_link(dbfrom="protein", id=proteinIDs, db="gene", by_id = TRUE))
+	mappable_index = seq(1,length(linked_gene_IDs.unlisted),2)
+	linked_gene_IDs = unlist(linked_gene_IDs.unlisted[mappable_index])
+	
+	return(linked_gene_IDs)
+}#end def geneID_wrapper
+```
+
+## Wrapper for Creating FASTA with Gene Symbols
+
+```{r function2, eval=FALSE}
+FASTA_symbol_wrapper = function(starting_GI_file, symbol_mapping, output_file){
+	proteinIDs = readLines(starting_GI_file)
+	all_recs = entrez_fetch(db="protein", id=proteinIDs, rettype="fasta")
+	write(all_recs, file="TEMP.fasta") #used to assist with conversion between R objects
+
+	temp_SeqObj = readAAStringSet("TEMP.fasta")
+	temp_SeqObj.seq = as.character(temp_SeqObj)
+	temp_SeqObj.seq = list()
+	for (i in 1:length(temp_SeqObj)){
+		temp_SeqObj.seq[i]=as.character(temp_SeqObj)[i]
+	}
+	write.fasta(temp_SeqObj.seq, symbol_mapping, file.out=output_file)
+	unlink("TEMP.fasta") # Delete temporary file
+}#end def FASTA_symbol_wrapper
+```
+
+## Wrapper for Performing `ape` Bootstrap Analysis
+
+```{r function3, eval=FALSE}
+ape_bootstrap_wrapper = function(msa.ape, boot_function, B){
+	msa.dist = dist.aa(msa.ape, pairwise.deletion = FALSE, scaled = FALSE)
+	msa.tree = tree_function(msa.ape)
+
+	msa.boot_obj = boot.phylo(msa.tree, msa.ape,
+									boot_function, B = B, trees = TRUE)
+	msa.tree_clade = prop.clades(msa.tree, msa.boot_obj$trees, rooted = FALSE)
+	msa.tree_boot = prop.clades(msa.tree, msa.boot_obj$trees)
+
+	layout(1)
+	par(mar = rep(2, 4))
+	plot(msa.tree, main = "")
+	drawSupportOnEdges(round(100 * msa.tree_boot / B))
+	nodelabels(round(100* msa.tree_clade / B))
+	legend("bottomleft", legend = c("Bipartitions", "Clades"), pch = 22,
+		   pt.bg = c("green", "lightblue"), pt.cex = 2.5)
+
+}#end def ape_bootstrap_wrapper
+
+
+```
