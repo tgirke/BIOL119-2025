@@ -106,8 +106,21 @@ unlink("TEMP.fasta") # Delete temporary file
 P450_SeqObj = readAAStringSet(FASTA_file)
 
 msa_ClustalOmega = msa(P450_SeqObj, method = "ClustalOmega")
+
+#Visualize area around invariant C
+msa_basename = "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.msaPrettyPrint.pdf" #please note the folder that is saved for GitHub visualization
+msa_pdf = paste("./data/phyloAnalysis",msa_basename,sep="/") #please note the folder that is saved for GitHub visualization
+msaPrettyPrint(msa_ClustalOmega, file = msa_basename,
+			y=c(540, 640), output="pdf", showNames="left", 
+			logoColors="rasmol", showLogo="top",
+			shadingMode="identical", shadingModeArg =c(50,90), shadingColors = "grays",
+			askForOverwrite=FALSE)
+file.copy(from = msa_basename, msa_pdf) #make sure that the PDF is saved in the intended location
+
 msa_ClustalOmega.ape = msaConvert(msa_ClustalOmega, type="ape::AAbin") #conversion of R object for next step
 ```
+
+![P450 Visualization Created Using `msaPrettyPrint`](./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.msaPrettyPrint.pdf){width=65%}
 
 # Create Phylogenetic Tree with Bootstrap Support (using `ape`)
 
