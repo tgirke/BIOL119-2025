@@ -59,4 +59,6 @@ pheatmap(as.matrix(msa_ClustalOmega.dist))
 ape_tree_file = "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png" #for OUTPUT, not input
 tree_function = function(x) nj(dist.aa(x))
 bootstrap_n = 100 #should really use at least 1000, but we are reducing time and resources
-ape_bootstrap_wrapper(msa_ClustalOmega.ape, tree_function, bootstrap_n)
+png(ape_tree_file, height=400, width=800)
+ape_bootstrap_wrapper.clade_only(msa_ClustalOmega.ape, tree_function, bootstrap_n)
+dev.off()

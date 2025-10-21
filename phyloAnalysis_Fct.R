@@ -46,3 +46,19 @@ ape_bootstrap_wrapper = function(msa.ape, boot_function, B){
 		   pt.bg = c("green", "lightblue"), pt.cex = 2.5)
 }#end def ape_bootstrap_wrapper
 
+ape_bootstrap_wrapper.clade_only = function(msa.ape, boot_function, B){
+	msa.dist = dist.aa(msa.ape, pairwise.deletion = FALSE, scaled = FALSE)
+	msa.tree = tree_function(msa.ape)
+
+	msa.boot_obj = boot.phylo(msa.tree, msa.ape,
+									boot_function, B = B, trees = TRUE)
+	msa.tree_clade = prop.clades(msa.tree, msa.boot_obj$trees, rooted = FALSE)
+	msa.tree_boot = prop.clades(msa.tree, msa.boot_obj$trees)
+
+	layout(1)
+	par(mar = rep(2, 4))
+	plot(msa.tree, main = "")
+	nodelabels(round(100* msa.tree_clade / B))
+	legend("bottomleft", legend = c( "Clades"), pch = 22,
+		   pt.bg = c( "lightblue"), pt.cex = 2.5)
+}#end def ape_bootstrap_wrapper.clade_only
