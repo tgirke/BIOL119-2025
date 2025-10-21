@@ -121,7 +121,7 @@ pheatmap(as.matrix(msa_ClustalOmega.dist))
 
 # Create Phylogenetic Tree with Bootstrap Support (using `ape`)
 
-The following code performs phylogenetic analysis using the `ape` Bioconductor package [@paradis2004ape].  In general, `ape` provides functionality for phylogenetic contruction from a distance matrix using the method of Neighbor-Joining (NJ, [@trees1987neighbor]) or Unweighted Pair Group Method using Arithmetic Mean (UPGMA, [@sokal1958statistical]). 
+The following code performs phylogenetic analysis using the `ape` Bioconductor package [@paradis2004ape].  In general, `ape` provides functionality for phylogenetic contruction from a distance matrix using the method of Neighbor-Joining (NJ, [@trees1987neighbor]) or Unweighted Pair Group Method using Arithmetic Averages (UPGMA, [@sokal1958statistical]). 
 
 This example considers amino acid divergence.  However, nucleotide divergence can also be considered, and Maximum Likelihood (ML) can be used to compare nucleotide substitution models and generate the most likely tree [@felsenstein1981evolutionary].  It is also possible to create a ML tree with animo acid sequences, but the underlying model will not be for nucleotide substitution rates.
 
@@ -133,24 +133,8 @@ ape_tree_file = "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.boot
 tree_function = function(x) nj(dist.aa(x))
 bootstrap_n = 100 #should really use at least 1000, but we are reducing time and resources
 
-ape_bootstrap_wrapper(msa_ClustalOmega.ape, tree_function, bootstrap_n)
+ape_bootstrap_wrapper.clade_only(msa_ClustalOmega.ape, tree_function, bootstrap_n)
 ```
-
-
-# Study Material for Homework
-
-<u>**Lecture LA6:**</u>
-<ul>
- <li>UPGMA / NJ Implementation</li>
- <li>UPGMA / NJ Assumptions</li>
- <li>Bootstrapping Support for Tree Generation</li>
-</ul>
-
-**<u>Procedures from This Assignment (SA4)</u>**:
-<ul>
- <li>Item 1</li>
- <li>Item 2</li>
-</ul>
 
 
 # Session Info
@@ -159,9 +143,7 @@ ape_bootstrap_wrapper(msa_ClustalOmega.ape, tree_function, bootstrap_n)
 sessionInfo()
 ```
 
-# References
-
-# Supplement
+# Supplement : Custom Functions
 
 ## Wrapper for Gene ID Mapping
 
@@ -199,7 +181,7 @@ FASTA_symbol_wrapper = function(starting_GI_file, symbol_mapping, output_file){
 ## Wrapper for Performing `ape` Bootstrap Analysis
 
 ```{r function3, eval=FALSE}
-ape_bootstrap_wrapper = function(msa.ape, boot_function, B){
+ape_bootstrap_wrapper.clade_only = function(msa.ape, boot_function, B){
 	msa.dist = dist.aa(msa.ape, pairwise.deletion = FALSE, scaled = FALSE)
 	msa.tree = tree_function(msa.ape)
 
@@ -211,12 +193,28 @@ ape_bootstrap_wrapper = function(msa.ape, boot_function, B){
 	layout(1)
 	par(mar = rep(2, 4))
 	plot(msa.tree, main = "")
-	drawSupportOnEdges(round(100 * msa.tree_boot / B))
 	nodelabels(round(100* msa.tree_clade / B))
-	legend("bottomleft", legend = c("Bipartitions", "Clades"), pch = 22,
-		   pt.bg = c("green", "lightblue"), pt.cex = 2.5)
-
-}#end def ape_bootstrap_wrapper
+	legend("bottomleft", legend = c( "Clades"), pch = 22,
+		   pt.bg = c( "lightblue"), pt.cex = 2.5)
+}#end def ape_bootstrap_wrapper.clade_only
 
 
 ```
+
+# Study Material for Homework
+
+<u>**Lecture LA6:**</u>
+<ul>
+ <li>UPGMA / NJ Implementation</li>
+ <li>UPGMA / NJ Assumptions</li>
+ <li>Bootstrapping Support for Tree Generation</li>
+</ul>
+
+**<u>Procedures from This Assignment (SA4)</u>**:
+<ul>
+ <li>Basic R Functions / Syntax</li>
+ <li>Descriptive Statistic Calculations in R</li>
+ <li>Knowledge of Commonly Used Functions from R Libraries</li>
+</ul>
+
+# References
