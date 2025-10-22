@@ -1,7 +1,7 @@
 ---
-title: 'BIOL119-2024: Learning R Basics with an Example'
+title: 'BIOL119-2025: Learning R Basics with an Example'
 author: 'Author: Your Name'
-date: "Last update: 28 October, 2024"
+date: "Last update: 22 October, 2025"
 output:
   html_document:
     toc: yes
@@ -30,6 +30,15 @@ editor_options:
 - Compile from command-line
 Rscript -e "rmarkdown::render('Intro2R.Rmd', c('html_document'), clean=FALSE)"
 -->
+
+# Import Libraries
+
+``` r
+suppressPackageStartupMessages({
+    library(tidyr)
+    library(ggplot2)
+})
+```
 
 # Import of Table 
 
@@ -247,13 +256,13 @@ sessionInfo()
 ```
 
 ```
-## R version 4.4.1 (2024-06-14)
+## R version 4.5.1 (2025-06-13)
 ## Platform: x86_64-pc-linux-gnu
-## Running under: Debian GNU/Linux 12 (bookworm)
+## Running under: Debian GNU/Linux 11 (bullseye)
 ## 
 ## Matrix products: default
-## BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.11.0 
-## LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.11.0
+## BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0 
+## LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0  LAPACK version 3.9.0
 ## 
 ## locale:
 ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8     LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8    LC_PAPER=en_US.UTF-8       LC_NAME=C                 
@@ -266,13 +275,13 @@ sessionInfo()
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] ggplot2_3.5.1 knitr_1.47   
+## [1] knitr_1.50    ggplot2_3.5.2 tidyr_1.3.1  
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] vctrs_0.6.5       cli_3.6.3         rlang_1.1.4       xfun_0.45         highr_0.11        purrr_1.0.2       generics_0.1.3    jsonlite_1.8.8    labeling_0.4.3    glue_1.7.0        colorspace_2.1-0  htmltools_0.5.8.1
-## [13] sass_0.4.9        fansi_1.0.6       scales_1.3.0      rmarkdown_2.27    grid_4.4.1        evaluate_0.24.0   munsell_0.5.1     jquerylib_0.1.4   tibble_3.2.1      fastmap_1.2.0     yaml_2.3.8        lifecycle_1.0.4  
-## [25] compiler_4.4.1    dplyr_1.1.4       pkgconfig_2.0.3   tidyr_1.3.1       farver_2.1.2      digest_0.6.36     R6_2.5.1          tidyselect_1.2.1  utf8_1.2.4        pillar_1.9.0      magrittr_2.0.3    bslib_0.7.0      
-## [37] withr_3.0.0       tools_4.4.1       gtable_0.3.5      cachem_1.1.0
+##  [1] vctrs_0.6.5        cli_3.6.5          rlang_1.1.6        xfun_0.52          purrr_1.0.4        generics_0.1.4     jsonlite_2.0.0     labeling_0.4.3     glue_1.8.0         htmltools_0.5.8.1  sass_0.4.10       
+## [12] scales_1.4.0       rmarkdown_2.29     grid_4.5.1         evaluate_1.0.4     jquerylib_0.1.4    tibble_3.3.0       fastmap_1.2.0      yaml_2.3.10        lifecycle_1.0.4    compiler_4.5.1     dplyr_1.1.4       
+## [23] RColorBrewer_1.1-3 pkgconfig_2.0.3    farver_2.1.2       digest_0.6.37      R6_2.6.1           dichromat_2.0-0.1  tidyselect_1.2.1   pillar_1.10.2      magrittr_2.0.3     bslib_0.9.0        withr_3.0.2       
+## [34] gtable_0.3.6       tools_4.5.1        cachem_1.1.0
 ```
 
 # References

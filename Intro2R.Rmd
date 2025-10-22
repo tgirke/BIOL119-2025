@@ -31,6 +31,14 @@ editor_options:
 Rscript -e "rmarkdown::render('Intro2R.Rmd', c('html_document'), clean=FALSE)"
 -->
 
+# Import Libraries
+```{r example1, eval=TRUE, message=FALSE}
+suppressPackageStartupMessages({
+    library(tidyr)
+    library(ggplot2)
+})
+```
+
 # Import of Table 
 
 The following provides a very brief introduction to R using a tabular file as an example [@manualr]. 
