@@ -155,23 +155,69 @@ can build phylogenetic trees from a distance matrix using either
 Neighbor-Joining (NJ) [@Saitou1987-xl] or Unweighted Pair Group Method with
 Arithmetic Averages (UPGMA) [@sokal1958statistical].
 
-While this example focuses on amino acid divergence, nucleotide divergence can
-also be analyzed. For nucleotide sequences, Maximum Likelihood (ML) can be
-employed to compare substitution models and generate the most probable tree
-[@Felsenstein1981-gy]. Although ML trees can also be constructed for
-amino acid sequences, the underlying model would not be based on nucleotide
-substitution rates. Maximum Parsimony is another available method for
-phylogenetic analysis.
-
+## Neighbor-Joining (NJ) Tree
 
 ```{r example6, eval=TRUE, message=FALSE}
-ape_tree_file <- "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png" #for OUTPUT, not input
+ape_tree_file <- "./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png" #for OUTPUT, not input
 
 tree_function <- function(x) nj(dist.aa(x))
 bootstrap_n <- 100 #should really use at least 1000, but we are reducing time and resources
 
+png(ape_tree_file, height=400, width=800)
 ape_bootstrap_wrapper.clade_only(msa_ClustalOmega.ape, tree_function, bootstrap_n)
+dev.off()
 ```
+
+![](./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png)
+
+
+## Alternative Workflow : UPGMA Tree
+
+There is a script that can run through similar steps, but use a different method for tree generation:
+
+```{r example7, eval=TRUE, message=FALSE}
+source("phyloAnalysis-UPGMA.R")
+```
+
+![](./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree-UPGMA.bootstrap-gene_symbol.png)
+
+You do not need to understand all of the changes, and you do not need to understand all of the details of the underlying R code.
+
+The `ape` manual describes how to define a custum function, such as for UPGMA.
+
+However, the important changes related to this particular step can be described as follows:
+
+### NJ : Neighbor-Joining
+```{r example8, eval=FALSE, message=FALSE}
+tree_function <- function(x){
+	dist_matrix <- dist.aa(x) #calculate distance matrix 
+	cluster_object <- nj(dist_matrix) #define clustered tree; `ape` function
+	ape_object <- as.phylo(cluster_object) #formatting converstion for `ape`
+	return(ape_object)
+}#end def tree_function
+```
+
+### UPGMA : Custom Function
+```{r example9, eval=FALSE, message=FALSE}
+##Extra `upgma` Function
+upgma = function(x) hclust(x, "average")
+
+tree_function <- function(x){
+	dist_matrix <- dist.aa(x) #calculate distance matrix
+	##Use of `upgma` instead of `ape`
+	cluster_object <- upgma(dist_matrix) #define clustered tree
+	ape_object <- as.phylo(cluster_object) #formatting converstion for `ape`
+	return(ape_object)
+}#end def tree_function
+```
+
+In both situations, the tree is generated with the following command:
+
+```{r example10, eval=FALSE, message=FALSE}
+msa.tree <- tree_function(msa.ape)
+```
+
+If you wish to continue to develop your R skills, then the concept of functions can be quite helpful.
 
 # Study Material for Homework
 
