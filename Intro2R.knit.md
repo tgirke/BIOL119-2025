@@ -1,6 +1,6 @@
 ---
 title: 'Introduction to R'
-subtitle: 'Part 1 of Discussion Section SA4 of BIOL119-2025'
+subtitle: 'Part 1 of Discussion Section SA4 in BIOL119-2025'
 author: 'Author: Your Name'
 date: "Last update: 22 October, 2025"
 output:

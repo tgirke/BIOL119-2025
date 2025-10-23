@@ -1,6 +1,7 @@
 ---
-title: 'BIOL119-2025: R-Based Phylogenetic Analysis'
-author: 'Author: Dr. Thomas Girke, Charles Warden, and Emily Vig'
+title: 'Phylogenetic Analysis in R'
+subtitle: 'Part 2 of Discussion Section SA4 of BIOL119-2025'
+author: 'Author: Your Name'
 date: "Last update: `r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
@@ -31,21 +32,35 @@ editor_options:
 Rscript -e "rmarkdown::render('phyloAnalysis.Rmd', c('html_document'), clean=FALSE)"
 -->
 
+# Introduction
+
+This tutorial covers a basic phylogenetic analysis in R including the following steps. It starts with an external website query, followed by all subsequent steps in R.
+
+1. NCBI query to retrieve sequence IDs 
+2. Sequence batch download
+3. Cration of multiple sequence alignment
+4. Building phylogentic tree with bootstrap analysis
+5. Tree visualization
+
+
 # Creation of Input File
+
+The following queries NCBI's protein database to retrieve the protein IDs of all Cytochrome P450 Hydroxilases from human that are present in UniProt.
 
  - Go to **[NCBI Protein](http://www.ncbi.nlm.nih.gov/protein)**, and run the following query: `P450 & hydroxylase & human [organism]`
  - Select under “Source databases” **UniProtKB/SwissProt** as database.
  - Save a *list of identifiers* (**GI List**) to your desktop via the "Send to" File drop down menu.
 
-**Please NOTE**: The abbreviation "GI" often stands for "Gene ID".  However, these are *not* Entrez Gene IDs.  Instead, it is more appropriate to consider these "Protein IDs."
+Note, the abbreviation "GI" often stands for "Gene ID".  However, these are *not* Entrez Gene IDs.  Instead, it is more appropriate to consider these "Protein IDs."
 
 Because this is a deviation from SA2 (creation of identifier list *instead* of FASTA file), this screenshot helps illustrate the novel step:
 
 ![Identifier Download](data/phyloAnalysis/NCBI_Protein.png "Downloading List of Identifiers")
 
-The end result is to create a **sequence.gi** file.
+The result is a `sequence.gi` file.
 
 # Import Libraries
+R packages required for this exercise will be loaded with the `library` command. To suppress verbose messages during the package loading process, the `suppressPackageStartupMessages` is used.
 
 ```{r example1, eval=TRUE, message=FALSE}
 suppressPackageStartupMessages({
@@ -57,48 +72,56 @@ suppressPackageStartupMessages({
 	library(ape)
 	library(pheatmap)
 })
+```
 
+Custom functions can be loaded with the ``source` command.
+```{r example1_fct, eval=TRUE, message=FALSE}
 source("phyloAnalysis_Fct.R")
 ```
 
-As a practice to reduce additional text, `suppressPackageStartupMessages` is used in the code above.
 
-# Define Gene IDs (using `rentrez`)
+# Get IDs 
+
+## Gene IDs
+
+The `rentrez` package in R is utilized to import the sequences corresponding to the IDs obtained in the previous step.
 
 ```{r example2, eval=TRUE, message=FALSE}
-result_ID_file = "data/phyloAnalysis/sequence.gi"
-linked_gene_IDs = geneID_wrapper(result_ID_file)
+result_ID_file <- "data/phyloAnalysis/sequence.gi"
+linked_gene_IDs <- geneID_wrapper(result_ID_file)
 ```
 
-# Define Gene Symbols (using `org.Hs.eg.db`)
+## Gene Symbols 
+
+The corresponding gene symbols can be obtained by querying the `org.Hs.eg.db` data package.
 
 ```{r example3, eval=TRUE, message=FALSE}
-gene_symbols = mapIds( x = org.Hs.eg.db, keys = linked_gene_IDs,
+gene_symbols <- mapIds( x = org.Hs.eg.db, keys = linked_gene_IDs,
 					column = "SYMBOL", keytype = "ENTREZID")
 					
-FASTA_file = "rentrez-P450_UniProtKB_SwissProt-gene_symbol.fasta" # for OUTPUT, not input
+FASTA_file <- "rentrez-P450_UniProtKB_SwissProt-gene_symbol.fasta" # for OUTPUT, not input
 FASTA_symbol_wrapper(result_ID_file, gene_symbols, FASTA_file)
 ```
 
-# Perform Multiple Sequence Alignment (using `msa`)
+# Multiple Sequence Alignment
 
-The `msa` Bioconductor package [@bodenhofer2015msa] provides three options for alignments : *ClustalW* [@thompson1994clustal], *Clustal Omega* [@sievers2011fast], and *MUSCLE* [@edgar2004muscle].
+The `msa` package in Bioconductor [@bodenhofer2015msa] offers access to three multiple alignment software tools: ClustalW [@thompson1994clustal], Clustal Omega [@sievers2011fast], and MUSCLE [@edgar2004muscle].
 
-The "clustal" format is a popular format to represent Multiple Sequence Alignments (MSA), along with a gapped FASTA representation.  Because *Clustal Omega* is the more recent implementation, we have used that method for the MSA.
+Multiple Sequence Alignments (MSA) are commonly represented using the "clustal" alignment format or the gapped FASTA format. This document utilizes Clustal Omega to generate the MSA for the downloaded P450 sequences due to its more recent implementation.
 
-Most steps can be accomplished with the web interface for [*Clustal Omega*](https://www.ebi.ac.uk/jdispatcher/msa/clustalo).
+For an alternative approach, the web version of Clustal Omega can be accessed at https://www.ebi.ac.uk/jdispatcher/msa/clustalo.
 
-However, one benefit to the **additional R code** (beyond reproducibility) is the additional of **bootstrap confidence**.  There is also some additional flexibility, such as being able to generate a heatmap from distance values (as shown in a later section).
+However, using the provided R code offers several benefits beyond reproducibility. These include the addition of bootstrap confidence and increased flexibility, such as the ability to generate heatmaps from distance values, as demonstrated in a later section.
 
 
 ```{r example4, eval=TRUE, message=FALSE}
-P450_SeqObj = readAAStringSet(FASTA_file)
+P450_SeqObj <- readAAStringSet(FASTA_file)
 
-msa_ClustalOmega = msa(P450_SeqObj, method = "ClustalOmega")
+msa_ClustalOmega <- msa(P450_SeqObj, method = "ClustalOmega")
 
-#Visualize Alignment Near Invariant Cysteine
-msa_basename = "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.msaPrettyPrint.pdf" #please note the folder that is saved for GitHub visualization
-msa_pdf = paste("./data/phyloAnalysis",msa_basename,sep="/") #please note the folder that is saved for GitHub visualization
+# View Multiple Alignment Near Invariant Cysteine
+msa_basename <- "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.msaPrettyPrint.pdf" #please note the folder that is saved for GitHub visualization
+msa_pdf <- paste("./data/phyloAnalysis",msa_basename,sep="/") #please note the folder that is saved for GitHub visualization
 msaPrettyPrint(msa_ClustalOmega, file = msa_basename,
 			y=c(540, 640), output="pdf", showNames="left", 
 			logoColors="rasmol", showLogo="top",
@@ -106,7 +129,7 @@ msaPrettyPrint(msa_ClustalOmega, file = msa_basename,
 			askForOverwrite=FALSE)
 file_copy(msa_basename, msa_pdf) #make sure that the PDF is saved in the intended location
 
-msa_ClustalOmega.ape = msaConvert(msa_ClustalOmega, type="ape::AAbin") #conversion of R object for next step
+msa_ClustalOmega.ape <- msaConvert(msa_ClustalOmega, type="ape::AAbin") #conversion of R object for next step
 ```
 
 ![P450 Visualization Created Using `msaPrettyPrint`](./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.msaPrettyPrint.pdf){width=100%}
@@ -114,91 +137,35 @@ msa_ClustalOmega.ape = msaConvert(msa_ClustalOmega, type="ape::AAbin") #conversi
 # Visualize Distance Matrix (using `pheatmap`)
 
 ```{r example5, eval=TRUE, message=FALSE}
-msa_ClustalOmega.dist = dist.aa(msa_ClustalOmega.ape, pairwise.deletion = FALSE, scaled = FALSE)
+msa_ClustalOmega.dist <- dist.aa(msa_ClustalOmega.ape, pairwise.deletion = FALSE, scaled = FALSE)
 
 pheatmap(as.matrix(msa_ClustalOmega.dist))
 ```
 
-# Create Phylogenetic Tree with Bootstrap Support (using `ape`)
+# Phylogenetic Tree with Bootstrap
 
-The following code performs phylogenetic analysis using the `ape` Bioconductor package [@paradis2004ape].  In general, `ape` provides functionality for phylogenetic contruction from a distance matrix using the method of Neighbor-Joining (NJ, [@trees1987neighbor]) or Unweighted Pair Group Method using Arithmetic Averages (UPGMA, [@sokal1958statistical]). 
+Phylogenetic analysis, as performed by the ape Bioconductor package
+[@paradis2004ape], offers various methods for tree construction. This package
+can build phylogenetic trees from a distance matrix using either
+Neighbor-Joining (NJ) [@trees1987neighbor] or Unweighted Pair Group Method with
+Arithmetic Averages (UPGMA) [@sokal1958statistical].
 
-This example considers amino acid divergence.  However, nucleotide divergence can also be considered, and Maximum Likelihood (ML) can be used to compare nucleotide substitution models and generate the most likely tree [@felsenstein1981evolutionary].  It is also possible to create a ML tree with animo acid sequences, but the underlying model will not be for nucleotide substitution rates.
+While this example focuses on amino acid divergence, nucleotide divergence can
+also be analyzed. For nucleotide sequences, Maximum Likelihood (ML) can be
+employed to compare substitution models and generate the most probable tree
+[@felsenstein1981evolutionary]. Although ML trees can also be constructed for
+amino acid sequences, the underlying model would not be based on nucleotide
+substitution rates. Maximum Parsimony is another available method for
+phylogenetic analysis.
 
-Maximum Parsimony is another method that can be used.
 
 ```{r example6, eval=TRUE, message=FALSE}
-ape_tree_file = "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png" #for OUTPUT, not input
+ape_tree_file <- "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png" #for OUTPUT, not input
 
-tree_function = function(x) nj(dist.aa(x))
-bootstrap_n = 100 #should really use at least 1000, but we are reducing time and resources
+tree_function <- function(x) nj(dist.aa(x))
+bootstrap_n <- 100 #should really use at least 1000, but we are reducing time and resources
 
 ape_bootstrap_wrapper.clade_only(msa_ClustalOmega.ape, tree_function, bootstrap_n)
-```
-
-
-# Session Info
-
-```{r sessionInfo}
-sessionInfo()
-```
-
-# Supplement : Custom Functions
-
-## Wrapper for Gene ID Mapping
-
-```{r function1, eval=FALSE}
-geneID_wrapper = function(input_file){
-	proteinIDs = readLines(result_ID_file)
-
-	linked_gene_IDs.unlisted = unlist(entrez_link(dbfrom="protein", id=proteinIDs, db="gene", by_id = TRUE))
-	mappable_index = seq(1,length(linked_gene_IDs.unlisted),2)
-	linked_gene_IDs = unlist(linked_gene_IDs.unlisted[mappable_index])
-	
-	return(linked_gene_IDs)
-}#end def geneID_wrapper
-```
-
-## Wrapper for Creating FASTA with Gene Symbols
-
-```{r function2, eval=FALSE}
-FASTA_symbol_wrapper = function(starting_GI_file, symbol_mapping, output_file){
-	proteinIDs = readLines(starting_GI_file)
-	all_recs = entrez_fetch(db="protein", id=proteinIDs, rettype="fasta")
-	write(all_recs, file="TEMP.fasta") #used to assist with conversion between R objects
-
-	temp_SeqObj = readAAStringSet("TEMP.fasta")
-	temp_SeqObj.seq = as.character(temp_SeqObj)
-	temp_SeqObj.seq = list()
-	for (i in 1:length(temp_SeqObj)){
-		temp_SeqObj.seq[i]=as.character(temp_SeqObj)[i]
-	}
-	write.fasta(temp_SeqObj.seq, symbol_mapping, file.out=output_file)
-	unlink("TEMP.fasta") # Delete temporary file
-}#end def FASTA_symbol_wrapper
-```
-
-## Wrapper for Performing `ape` Bootstrap Analysis
-
-```{r function3, eval=FALSE}
-ape_bootstrap_wrapper.clade_only = function(msa.ape, boot_function, B){
-	msa.dist = dist.aa(msa.ape, pairwise.deletion = FALSE, scaled = FALSE)
-	msa.tree = tree_function(msa.ape)
-
-	msa.boot_obj = boot.phylo(msa.tree, msa.ape,
-									boot_function, B = B, trees = TRUE)
-	msa.tree_clade = prop.clades(msa.tree, msa.boot_obj$trees, rooted = FALSE)
-	msa.tree_boot = prop.clades(msa.tree, msa.boot_obj$trees)
-
-	layout(1)
-	par(mar = rep(2, 4))
-	plot(msa.tree, main = "")
-	nodelabels(round(100* msa.tree_clade / B))
-	legend("bottomleft", legend = c( "Clades"), pch = 22,
-		   pt.bg = c( "lightblue"), pt.cex = 2.5)
-}#end def ape_bootstrap_wrapper.clade_only
-
-
 ```
 
 # Study Material for Homework
@@ -216,5 +183,12 @@ ape_bootstrap_wrapper.clade_only = function(msa.ape, boot_function, B){
  <li>Descriptive Statistic Calculations in R</li>
  <li>Knowledge of Commonly Used Functions from R Libraries</li>
 </ul>
+
+# Session Info
+
+```{r sessionInfo}
+sessionInfo()
+```
+
 
 # References
