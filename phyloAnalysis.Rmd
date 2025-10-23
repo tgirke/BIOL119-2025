@@ -175,19 +175,15 @@ ape_bootstrap_wrapper.clade_only(msa_ClustalOmega.ape, tree_function, bootstrap_
 
 # Study Material for Homework
 
-<u>**Lecture LA6:**</u>
-<ul>
- <li>UPGMA / NJ Implementation</li>
- <li>UPGMA / NJ Assumptions</li>
- <li>Bootstrapping Support for Tree Generation</li>
-</ul>
+## Lecture LA6
+ - UPGMA / NJ Implementation
+ - UPGMA / NJ Assumptions
+ - Bootstrapping Support for Tree Generation
 
-**<u>Procedures from This Assignment (SA4)</u>**:
-<ul>
- <li>Basic R Functions / Syntax</li>
- <li>Descriptive Statistic Calculations in R</li>
- <li>Knowledge of Commonly Used Functions from R Libraries</li>
-</ul>
+## Procedures from This Assignment (SA4)
+ - Basic R Functions / Syntax
+ - Descriptive Statistic Calculations in R
+ - Knowledge of Commonly Used Functions from R Libraries
 
 # Session Info
 
