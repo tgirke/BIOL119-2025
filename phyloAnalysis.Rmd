@@ -105,7 +105,7 @@ FASTA_symbol_wrapper(result_ID_file, gene_symbols, FASTA_file)
 
 # Multiple Sequence Alignment
 
-The `msa` package in Bioconductor [@bodenhofer2015msa] offers access to three multiple alignment software tools: ClustalW [@thompson1994clustal], Clustal Omega [@sievers2011fast], and MUSCLE [@edgar2004muscle].
+The `msa` package in Bioconductor [@Bodenhofer2015-yj] offers access to three multiple alignment software tools: ClustalW [@Thompson1994-yq], Clustal Omega [@Sievers2011-bj], and MUSCLE [@Edgar2004-sn].
 
 Multiple Sequence Alignments (MSA) are commonly represented using the "clustal" alignment format or the gapped FASTA format. This document utilizes Clustal Omega to generate the MSA for the downloaded P450 sequences due to its more recent implementation.
 
@@ -150,15 +150,15 @@ pheatmap(as.matrix(msa_ClustalOmega.dist))
 # Phylogenetic Tree with Bootstrap
 
 Phylogenetic analysis, as performed by the ape Bioconductor package
-[@paradis2004ape], offers various methods for tree construction. This package
+[@Paradis2004-vj], offers various methods for tree construction. This package
 can build phylogenetic trees from a distance matrix using either
-Neighbor-Joining (NJ) [@trees1987neighbor] or Unweighted Pair Group Method with
+Neighbor-Joining (NJ) [@Saitou1987-xl] or Unweighted Pair Group Method with
 Arithmetic Averages (UPGMA) [@sokal1958statistical].
 
 While this example focuses on amino acid divergence, nucleotide divergence can
 also be analyzed. For nucleotide sequences, Maximum Likelihood (ML) can be
 employed to compare substitution models and generate the most probable tree
-[@felsenstein1981evolutionary]. Although ML trees can also be constructed for
+[@Felsenstein1981-gy]. Although ML trees can also be constructed for
 amino acid sequences, the underlying model would not be based on nucleotide
 substitution rates. Maximum Parsimony is another available method for
 phylogenetic analysis.
