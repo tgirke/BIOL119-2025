@@ -134,7 +134,12 @@ msa_ClustalOmega.ape <- msaConvert(msa_ClustalOmega, type="ape::AAbin") #convers
 
 ![P450 Visualization Created Using `msaPrettyPrint`](./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.msaPrettyPrint.pdf){width=100%}
 
-# Visualize Distance Matrix (using `pheatmap`)
+# Visualize Distance Matrix
+
+A heatmap can be used to visualize a distance matrix. The `dist.aa` function from
+the `pheatmap` package provides an example of this. In the resulting plot, colors
+represent the distance values, and the order of the rows and columns is
+adjusted according to distance trees.
 
 ```{r example5, eval=TRUE, message=FALSE}
 msa_ClustalOmega.dist <- dist.aa(msa_ClustalOmega.ape, pairwise.deletion = FALSE, scaled = FALSE)
