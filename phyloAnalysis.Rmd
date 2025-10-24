@@ -224,11 +224,6 @@ midpoint method is used. How to perform rooting with an outgroup is show but
 not evaluated. The final plot displays branch lengths proportional to evolutionary 
 distance and bootstrap percentages that indicate how strongly each clade is supported by the data.
 
-Different tree shapes can be specified under the `type` argument of the `plot_tree_bootstrap` function.
-This is a custom function that uses internally the `plot.phylo` function of the `ape` package. To find
-out which tree styles are available, open its help with `?plot.phylo` and look up under the `type`
-argument the available options. The below creates a phylogram and a fan-shaped tree by specifying 
-`"phylogram"` and `"fan"`, respectively.
 
 ```{r example7, eval=TRUE, message=FALSE}
 msa_bios <- readAAMultipleAlignment("data/phyloAnalysis/msa.fasta", format="fasta")
@@ -239,6 +234,15 @@ tree_nj_rooted <- phangorn::midpoint(tree_nj)
 # Outgroup rooting 
 # tree_nj_rooted <- ape::root(tree_nj, outgroup = "YourOutgroupName", resolve.root = TRUE)
 plot_tree_bootstrap(tree_nj_rooted, type="phylogram", cutoff = 70, main = "")
+```
+
+Different tree shapes can be specified under the `type` argument of the `plot_tree_bootstrap` function.
+This is a custom function that uses internally the `plot.phylo` function of the `ape` package. To find
+out which tree styles are available, open its help with `?plot.phylo` and look up under the `type`
+argument the available options. The below creates, in addition to the above phylogram, a fan-shaped tree 
+by specifying `"fan"` under the type argument.
+
+```{r example7b, eval=TRUE, message=FALSE}
 plot_tree_bootstrap(tree_nj_rooted, type="fan", cutoff = 70, main = "")
 ```
 
