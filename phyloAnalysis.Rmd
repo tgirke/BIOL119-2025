@@ -118,7 +118,9 @@ data/phyloAnalysis/ directory. After importing this file, the multiple
 alignment is interactively displayed using the `msaR` package. This interactive
 display is highly beneficial for inspecting the alignment, as it also features
 a sequence logo representation to illustrate residue conservation in each
-column. Scrolling right reveals the Prosite motif [PS00018](https://prosite.expasy.org/PDOC00081) 
+column. Moreover, one can change the color scheme under the `Color scheme` menu. 
+For instance, the `"PID"` scheme is a good choice to highlight highly conserved areas.
+Scrolling right reveals the Prosite motif [PS00018](https://prosite.expasy.org/PDOC00081) 
 for P450 sequences, approximately located in columns 602 to 620. Also pay attention
 that multiple alignments are stored here as `AAMultipleAlignment` that allows to 
 subset them columnwise. How to do this is given in the line that creates the `msa_bios_sub`
@@ -136,18 +138,32 @@ msaR::msaR(Biostrings::unmasked(msa_bios))
 
 # Create and Visualize Distance Matrix
 
+## Compute Distance Matrix
 To perform downstream clustering-based tree building, a distance matrix must
 first be computed from the multiple alignment. This is achieved using the
-`dist.aa` function from the `ape` package. The second line outputs a small
-slice of the distance matrix (restricted to first 4 row and columns). __Note:__
-The distance matrix is created in this step mainly for demonstration purposes. The
-below tree building functions are not using it as input since they create the required
-distance matrix internally on the fly.
+`dist.aa` function from the `ape` package. __Note:__ The distance matrix is
+created in this step mainly for demonstration purposes. The below tree building
+functions are not using it as input since they create the required distance
+matrix internally on the fly.
 
 ```{r example5, eval=TRUE, message=FALSE}
 msa_ClustalOmega.dist <- dist.aa(msa_ClustalOmega.ape, pairwise.deletion = FALSE, scaled = FALSE)
-as.matrix(msa_ClustalOmega.dist)[1:4, 1:4]
 ```
+
+## Inspect Distance Matrix
+
+The distance matrix can be inspected by converting it into a `matrix` with the `as.matrix` function.
+The second line below outputs a small slice of the distance matrix (restricted to
+first 4 row and columns), and the third line demonstrates how to obtain the distance
+value for a specific squence pair, here "CYP8B1" and "CYP7B1".
+
+```{r example5a, eval=TRUE, message=FALSE}
+mymatrix <- as.matrix(msa_ClustalOmega.dist)
+mymatrix[1:4, 1:4]
+mymatrix["CYP8B1", "CYP7B1"]
+```
+
+## Visualize Distance Matrix
 
 An efficient way to inspect distance matrices visually is to create a heatmap.
 The `pheatmap` function is used for this. In the resulting plot, colors
@@ -208,6 +224,12 @@ midpoint method is used. How to perform rooting with an outgroup is show but
 not evaluated. The final plot displays branch lengths proportional to evolutionary 
 distance and bootstrap percentages that indicate how strongly each clade is supported by the data.
 
+Different tree shapes can be specified under the `type` argument of the `plot_tree_bootstrap` function.
+This is a custom function that uses internally the `plot.phylo` function of the `ape` package. To find
+out which tree styles are available, open its help with `?plot.phylo` and look up under the `type`
+argument the available options. The below creates a phylogram and a fan-shaped tree by specifying 
+`"phylogram"` and `"fan"`, respectively.
+
 ```{r example7, eval=TRUE, message=FALSE}
 msa_bios <- readAAMultipleAlignment("data/phyloAnalysis/msa.fasta", format="fasta")
 m  <- as.matrix(unmasked(msa_bios)) 
@@ -216,7 +238,8 @@ tree_nj <- nj_bootstrap_aa(m, B = 500, model = "JTT")
 tree_nj_rooted <- phangorn::midpoint(tree_nj)
 # Outgroup rooting 
 # tree_nj_rooted <- ape::root(tree_nj, outgroup = "YourOutgroupName", resolve.root = TRUE)
-plot_tree_bootstrap(tree_nj_rooted, cutoff = 70, main = "")
+plot_tree_bootstrap(tree_nj_rooted, type="phylogram", cutoff = 70, main = "")
+plot_tree_bootstrap(tree_nj_rooted, type="fan", cutoff = 70, main = "")
 ```
 
 # Study Material for Homework

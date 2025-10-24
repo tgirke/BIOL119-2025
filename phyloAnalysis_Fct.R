@@ -87,8 +87,10 @@ upgma_bootstrap_aa <- function(aln_mat, B = 100, model = "JTT", seed = 1) {
 
 ## Plot UPGMA Tree with Bootstrap Values
 plot_tree_bootstrap <- function(tree, tip_cex=.9, bs_cex=.7,
-                                 cutoff=50, main="UPGMA with bootstrap (%)",
-                                 legend_outside=TRUE) {
+                                 cutoff=50,
+                                 main="UPGMA with bootstrap (%)",
+                                 legend_outside=TRUE,
+                                 type="phylogram") {
   if (is.null(tree$node.label)) stop("tree$node.label is empty.")
   bs  <- as.numeric(tree$node.label)
   lab <- ifelse(bs >= cutoff, as.character(bs), "")
@@ -97,8 +99,8 @@ plot_tree_bootstrap <- function(tree, tip_cex=.9, bs_cex=.7,
   # add right margin if we want the legend outside
   par(xpd = NA, mar = c(2.5, 1, 2, if (legend_outside) 10 else 2))
   tr <- ladderize(tree)
-  plot(tr, cex = tip_cex, no.margin = TRUE); title(main)
-
+  plot(tr, type = type, cex = tip_cex, no.margin = TRUE); title(main)
+  
   ints <- (Ntip(tr) + 1):(Ntip(tr) + length(tr$node.label))
   nodelabels(text = lab, node = ints, frame = "n",
              adj = c(1.1, -0.25), cex = bs_cex, col = col)
