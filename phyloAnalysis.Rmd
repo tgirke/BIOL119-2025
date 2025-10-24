@@ -183,7 +183,7 @@ alignment as input. The distance matrix is recomputed by the function on the fly
 
 ```{r example6, eval=TRUE, message=FALSE}
 msa_bios <- readAAMultipleAlignment("data/phyloAnalysis/msa.fasta", format="fasta")
-m  <- as.matrix(unmasked(msa_bios))                               # each row = sequence
+m  <- as.matrix(unmasked(msa_bios))   
 tree_upgma <- upgma_bootstrap_aa(m)
 plot_tree_bootstrap(tree_upgma, cutoff = 70, main = "")
 ```
@@ -210,7 +210,7 @@ distance and bootstrap percentages that indicate how strongly each clade is supp
 
 ```{r example7, eval=TRUE, message=FALSE}
 msa_bios <- readAAMultipleAlignment("data/phyloAnalysis/msa.fasta", format="fasta")
-m  <- as.matrix(unmasked(msa_bios))                               # each row = sequence
+m  <- as.matrix(unmasked(msa_bios)) 
 tree_nj <- nj_bootstrap_aa(m, B = 500, model = "JTT")
 # Midpoint rooting 
 tree_nj_rooted <- phangorn::midpoint(tree_nj)
