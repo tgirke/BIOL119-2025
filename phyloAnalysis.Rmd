@@ -202,7 +202,6 @@ alignment as input. The distance matrix is recomputed by the function on the fly
 ```{r example6, eval=TRUE, message=FALSE}
 msa_bios <- readAAMultipleAlignment("data/phyloAnalysis/msa.fasta", format="fasta")
 m  <- as.matrix(unmasked(msa_bios))   
-# tree_upgma <- upgma_bootstrap_aa(m)
 tree_upgma <- upgma_bootstrap_aa(m, B = 100, model = "JTT")
 plot_tree_bootstrap(tree_upgma, cutoff = 70, main = "")
 ```
