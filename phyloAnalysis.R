@@ -62,3 +62,7 @@ bootstrap_n = 100 #should really use at least 1000, but we are reducing time and
 png(ape_tree_file, height=400, width=800)
 ape_bootstrap_wrapper.clade_only(msa_ClustalOmega.ape, tree_function, bootstrap_n)
 dev.off()
+
+
+
+

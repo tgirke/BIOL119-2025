@@ -70,36 +70,35 @@ suppressPackageStartupMessages({
 	library(seqinr)#to create intermediate FASTA file
 	library(msa)
 	library(ape)
+	library(phangorn)
 	library(pheatmap)
+    library(msaR)
 })
 ```
 
-Custom functions can be loaded with the ``source` command.
+Custom functions required for the following analyses are loaded with the `source` command from an R file
+named `phyloAnalysis_Fct.R`.
 ```{r example1_fct, eval=TRUE, message=FALSE}
 source("phyloAnalysis_Fct.R")
 ```
 
+# Import Sequences 
 
-# Get IDs 
-
-## Gene IDs
-
-The `rentrez` package in R is utilized to import the sequences corresponding to the IDs obtained in the previous step.
+Using the protein IDs obtained from the NCBI query in the previous step, the `rentrez` package is 
+used to import the corresponding P450 protein sequences into R.
 
 ```{r example2, eval=TRUE, message=FALSE}
 result_ID_file <- "data/phyloAnalysis/sequence.gi"
-linked_gene_IDs <- geneID_wrapper(result_ID_file)
+gene_IDs <- geneID_wrapper(result_ID_file)
 ```
-
-## Gene Symbols 
-
-The corresponding gene symbols can be obtained by querying the `org.Hs.eg.db` data package.
+Since P450s are named by subfamilies, the corresponding gene symbols are
+used as labels of the protein sequences. The gene symbols are obtained by querying the
+`org.Hs.eg.db` data package. This way it is easier to assess whether the
+P450 subfamilies cluster together in the downstream phylogenetic trees. 
 
 ```{r example3, eval=TRUE, message=FALSE}
-gene_symbols <- mapIds( x = org.Hs.eg.db, keys = linked_gene_IDs,
-					column = "SYMBOL", keytype = "ENTREZID")
-					
-FASTA_file <- "rentrez-P450_UniProtKB_SwissProt-gene_symbol.fasta" # for OUTPUT, not input
+gene_symbols <- mapIds( x = org.Hs.eg.db, keys = gene_IDs, column = "SYMBOL", keytype = "ENTREZID")
+FASTA_file <- "rentrez-P450_UniProtKB_SwissProt-gene_symbol.fasta" # Name of output fasta file
 FASTA_symbol_wrapper(result_ID_file, gene_symbols, FASTA_file)
 ```
 
@@ -109,124 +108,127 @@ The `msa` package in Bioconductor [@Bodenhofer2015-yj] offers access to three mu
 
 Multiple Sequence Alignments (MSA) are commonly represented using the "clustal" alignment format or the gapped FASTA format. This document utilizes Clustal Omega to generate the MSA for the downloaded P450 sequences due to its more recent implementation.
 
-For an alternative approach, the web version of Clustal Omega can be accessed at https://www.ebi.ac.uk/jdispatcher/msa/clustalo.
+For an alternative approach, the web version of Clustal Omega can be accessed [here](https://www.ebi.ac.uk/jdispatcher/msa/clustalo).
 
-However, using the provided R code offers several benefits beyond reproducibility. These include the addition of bootstrap confidence and increased flexibility, such as the ability to generate heatmaps from distance values, as demonstrated in a later section.
+However, using the provided R code offers several benefits beyond reproducibility. These include programmability, automation for large scale analyses, and increased flexibility.
 
+The following steps create a multiple alignment for the downloaded P450 protein
+sequences. The output, a gapped FASTA file named `p450msa.fasta`, is saved in the
+data/phyloAnalysis/ directory. After importing this file, the multiple
+alignment is interactively displayed using the `msaR` package. This interactive
+display is highly beneficial for inspecting the alignment, as it also features
+a sequence logo representation to illustrate residue conservation in each
+column. Scrolling right reveals the Prosite motif [PS00018](https://prosite.expasy.org/PDOC00081) 
+for P450 sequences, approximately located in columns 602 to 620. Also pay attention
+that multiple alignments are stored here as `AAMultipleAlignment` that allows to 
+subset them columnwise. How to do this is given in the line that creates the `msa_bios_sub`
+object. 
 
-```{r example4, eval=TRUE, message=FALSE}
+```{r example4a, eval=TRUE, message=FALSE}
 P450_SeqObj <- readAAStringSet(FASTA_file)
-
 msa_ClustalOmega <- msa(P450_SeqObj, method = "ClustalOmega")
-
-# View Multiple Alignment Near Invariant Cysteine
-msa_basename <- "rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.msaPrettyPrint.pdf" #please note the folder that is saved for GitHub visualization
-msa_pdf <- paste("./data/phyloAnalysis",msa_basename,sep="/") #please note the folder that is saved for GitHub visualization
-msaPrettyPrint(msa_ClustalOmega, file = msa_basename,
-			y=c(540, 640), output="pdf", showNames="left", 
-			logoColors="rasmol", showLogo="top",
-			shadingMode="identical", shadingModeArg =c(50,90), shadingColors = "grays",
-			askForOverwrite=FALSE)
-file_copy(msa_basename, msa_pdf) #make sure that the PDF is saved in the intended location
-
 msa_ClustalOmega.ape <- msaConvert(msa_ClustalOmega, type="ape::AAbin") #conversion of R object for next step
+Biostrings::writeXStringSet(Biostrings::unmasked(msa_ClustalOmega), "data/phyloAnalysis/msa.fasta")
+msa_bios <- readAAMultipleAlignment("data/phyloAnalysis/msa.fasta", format="fasta")
+msa_bios_sub <- AAMultipleAlignment(AAStringSet(apply(as.matrix(unmasked(msa_bios))[,10:50], 1, paste0, collapse="")))
+msaR::msaR(Biostrings::unmasked(msa_bios))
 ```
 
-![P450 Visualization Created Using `msaPrettyPrint`](./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.msaPrettyPrint.pdf){width=100%}
+# Create and Visualize Distance Matrix
 
-# Visualize Distance Matrix
-
-A heatmap can be used to visualize a distance matrix. The `dist.aa` function from
-the `pheatmap` package provides an example of this. In the resulting plot, colors
-represent the distance values, and the order of the rows and columns is
-adjusted according to distance trees.
+To perform downstream clustering-based tree building, a distance matrix must
+first be computed from the multiple alignment. This is achieved using the
+`dist.aa` function from the `ape` package. The second line outputs a small
+slice of the distance matrix (restricted to first 4 row and columns). __Note:__
+The distance matrix is created in this step mainly for demonstration purposes. The
+below tree building functions are not using it as input since they create the required
+distance matrix internally on the fly.
 
 ```{r example5, eval=TRUE, message=FALSE}
 msa_ClustalOmega.dist <- dist.aa(msa_ClustalOmega.ape, pairwise.deletion = FALSE, scaled = FALSE)
+as.matrix(msa_ClustalOmega.dist)[1:4, 1:4]
+```
 
+An efficient way to inspect distance matrices visually is to create a heatmap.
+The `pheatmap` function is used for this. In the resulting plot, colors
+represent the distance values, and the order of the rows and columns is
+adjusted according to distance trees.
+
+```{r example5b, eval=TRUE, message=FALSE}
 pheatmap(as.matrix(msa_ClustalOmega.dist))
 ```
 
 # Phylogenetic Tree with Bootstrap
 
-Phylogenetic analysis, as performed by the ape Bioconductor package
-[@Paradis2004-vj], offers various methods for tree construction. This package
-can build phylogenetic trees from a distance matrix using either
-Neighbor-Joining (NJ) [@Saitou1987-xl] or Unweighted Pair Group Method with
-Arithmetic Averages (UPGMA) [@sokal1958statistical].
+Phylogenetic analysis is performed by the `ape` and some other helper
+packages [@Paradis2004-vj]. The `ape` package offers various methods 
+for tree construction, including the Unweighted Pair Group Method with
+Arithmetic Averages (UPGMA) [@sokal1958statistical] and Neighbor-Joining 
+(NJ) [@Saitou1987-xl]. This section introduces both of these
+tree building methods.
 
-## Neighbor-Joining (NJ) Tree
+## UPGMA Tree
+The follwing imports the multiple alignment of P450 protein sequences and
+converts it to a matrix. Using the `phangorn` package, pairwise evolutionary
+distances are computed under a standard amino acid substitution model such as
+JTT, and the ape package then applies the UPGMA (Unweighted Pair Group Method
+with Arithmetic Mean) algorithm to cluster sequences into a rooted cladogran
+(ultrametric tree if sequences evolve clockwise). To evaluate the reliability 
+of the branches, a bootstrap analysis repeatedly resamples alignment columns, 
+rebuilds the tree, and counts how often each grouping reappears. These percentages 
+are added to the nodes as bootstrap support values. Finally, the tree is plotted with
+bootstrap values indicating the confidence in each inferred relationship.
+The `upgma_bootstrap_aa` that performs this analysis only requires the multiple 
+alignment as input. The distance matrix is recomputed by the function on the fly.
 
 ```{r example6, eval=TRUE, message=FALSE}
-ape_tree_file <- "./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png" #for OUTPUT, not input
-
-tree_function <- function(x) nj(dist.aa(x))
-bootstrap_n <- 100 #should really use at least 1000, but we are reducing time and resources
-
-png(ape_tree_file, height=400, width=800)
-ape_bootstrap_wrapper.clade_only(msa_ClustalOmega.ape, tree_function, bootstrap_n)
-dev.off()
+msa_bios <- readAAMultipleAlignment("data/phyloAnalysis/msa.fasta", format="fasta")
+m  <- as.matrix(unmasked(msa_bios))                               # each row = sequence
+tree_upgma <- upgma_bootstrap_aa(m)
+plot_tree_bootstrap(tree_upgma, cutoff = 70, main = "")
 ```
 
-![](./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree.bootstrap-gene_symbol.png)
-
-
-## Alternative Workflow : UPGMA Tree
-
-There is a script that can run through similar steps, but use a different method for tree generation:
+## Neighbor-Joining (NJ) Tree
+This part of the exercise demonstrates how to build a Neighbor-Joining (NJ)
+phylogenetic tree from the same P450 protein alignment that was used for the UPGMA
+analysis. For this, the aligned amino acid sequences are imported and converted into a
+matrix format as before. Using the phangorn package, a distance matrix is computed under a 
+substitution model such as JTT, which estimates how many amino acid substitutions separate each
+pair of sequences. The `nj` function from the `ape` package is used to constructs an unrooted
+Neighbor-Joining tree, which differs from UPGMA because it does not assume a
+constant evolutionary rate across lineages (no molecular clock). To assess the
+reliability of each branch, a bootstrap analysis is performed: the alignment
+columns are resampled many times, the NJ tree is rebuilt for each replicate,
+and the frequency with which each grouping reappears is recorded as a bootstrap
+percentage. The resulting values are included in the internal branches of the
+consensus NJ tree. Because NJ produces an unrooted tree, it is then rooted
+either by the midpoint method (placing the root halfway between the two most
+distant tips) or by specifying a known outgroup sequence. In this example the only the
+midpoint method is used. How to perform rooting with an outgroup is show but 
+not evaluated. The final plot displays branch lengths proportional to evolutionary 
+distance and bootstrap percentages that indicate how strongly each clade is supported by the data.
 
 ```{r example7, eval=TRUE, message=FALSE}
-source("phyloAnalysis-UPGMA.R")
+msa_bios <- readAAMultipleAlignment("data/phyloAnalysis/msa.fasta", format="fasta")
+m  <- as.matrix(unmasked(msa_bios))                               # each row = sequence
+tree_nj <- nj_bootstrap_aa(m, B = 500, model = "JTT")
+# Midpoint rooting 
+tree_nj_rooted <- phangorn::midpoint(tree_nj)
+# Outgroup rooting 
+# tree_nj_rooted <- ape::root(tree_nj, outgroup = "YourOutgroupName", resolve.root = TRUE)
+plot_tree_bootstrap(tree_nj_rooted, cutoff = 70, main = "")
 ```
-
-![](./data/phyloAnalysis/rentrez-msa_ClustalOmega-P452_UniProtKB_SwissProt.ape_tree-UPGMA.bootstrap-gene_symbol.png)
-
-You do not need to understand all of the changes, and you do not need to understand all of the details of the underlying R code.
-
-The `ape` manual describes how to define a custum function, such as for UPGMA.
-
-However, the important changes related to this particular step can be described as follows:
-
-### NJ : Neighbor-Joining
-```{r example8, eval=FALSE, message=FALSE}
-tree_function <- function(x){
-	dist_matrix <- dist.aa(x) #calculate distance matrix 
-	cluster_object <- nj(dist_matrix) #define clustered tree; `ape` function
-	ape_object <- as.phylo(cluster_object) #formatting converstion for `ape`
-	return(ape_object)
-}#end def tree_function
-```
-
-### UPGMA : Custom Function
-```{r example9, eval=FALSE, message=FALSE}
-##Extra `upgma` Function
-upgma = function(x) hclust(x, "average")
-
-tree_function <- function(x){
-	dist_matrix <- dist.aa(x) #calculate distance matrix
-	##Use of `upgma` instead of `ape`
-	cluster_object <- upgma(dist_matrix) #define clustered tree
-	ape_object <- as.phylo(cluster_object) #formatting converstion for `ape`
-	return(ape_object)
-}#end def tree_function
-```
-
-In both situations, the tree is generated with the following command:
-
-```{r example10, eval=FALSE, message=FALSE}
-msa.tree <- tree_function(msa.ape)
-```
-
-If you wish to continue to develop your R skills, then the concept of functions can be quite helpful.
 
 # Study Material for Homework
 
-## Lecture LA6
+__Lecture LA6__
+
  - UPGMA / NJ Implementation
  - UPGMA / NJ Assumptions
  - Bootstrapping Support for Tree Generation
+   
+__Procedures from this assignment (SA4)__
 
-## Procedures from This Assignment (SA4)
  - Basic R Functions / Syntax
  - Descriptive Statistic Calculations in R
  - Knowledge of Commonly Used Functions from R Libraries
