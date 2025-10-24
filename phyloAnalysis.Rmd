@@ -220,22 +220,33 @@ columns are resampled many times, the NJ tree is rebuilt for each replicate,
 and the frequency with which each grouping reappears is recorded as a bootstrap
 percentage. The number of bootstrap repetitions can be specified under the `B` argument.
 The resulting values are included in the internal branches of the
-consensus NJ tree. Because NJ produces an unrooted tree, it is then rooted
-either by the midpoint method (placing the root halfway between the two most
-distant tips) or by specifying a known outgroup sequence. In this example the only the
-midpoint method is used. How to perform rooting with an outgroup is show but 
-not evaluated. The final plot displays branch lengths proportional to evolutionary 
-distance and bootstrap percentages that indicate how strongly each clade is supported by the data.
-
+consensus NJ tree. 
 
 ```{r example7, eval=TRUE, message=FALSE}
 msa_bios <- readAAMultipleAlignment("data/phyloAnalysis/msa.fasta", format="fasta")
 m  <- as.matrix(unmasked(msa_bios)) 
 tree_nj <- nj_bootstrap_aa(m, B = 100, model = "JTT")
+```
+
+Because NJ produces an unrooted tree, it is then rooted
+either by the midpoint method (placing the root halfway between the two most
+distant tips) or by specifying a known outgroup sequence. In this example the only the
+midpoint method is used. How to perform rooting with an outgroup is show but 
+not evaluated. 
+
+
+```{r example7a, eval=TRUE, message=FALSE}
 # Midpoint rooting 
 tree_nj_rooted <- phangorn::midpoint(tree_nj)
 # Outgroup rooting 
 # tree_nj_rooted <- ape::root(tree_nj, outgroup = "YourOutgroupName", resolve.root = TRUE)
+```
+
+The final tree is plotted as a `"phylogram"` with the branch lengths proportional to evolutionary 
+distance and bootstrap percentages shown at the internal nodes. The latter indicate how strongly 
+each clade is supported by the data.
+
+```{r example7b, eval=TRUE, message=FALSE}
 plot_tree_bootstrap(tree_nj_rooted, type="phylogram", cutoff = 70, main = "")
 ```
 
@@ -245,7 +256,7 @@ out which tree styles are available, open its help with `?plot.phylo` and look u
 argument the available options. The below creates, in addition to the above phylogram, a fan-shaped tree 
 by specifying `"fan"` under the type argument.
 
-```{r example7b, eval=TRUE, message=FALSE}
+```{r example7c, eval=TRUE, message=FALSE}
 plot_tree_bootstrap(tree_nj_rooted, type="fan", cutoff = 70, main = "")
 ```
 
