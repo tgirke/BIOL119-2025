@@ -230,7 +230,7 @@ tree_nj <- nj_bootstrap_aa(m, B = 100, model = "JTT")
 
 Because NJ produces an unrooted tree, it is then rooted
 either by the midpoint method (placing the root halfway between the two most
-distant tips) or by specifying a known outgroup sequence. In this example the only the
+distant tips) or by specifying a known outgroup sequence. In this example only the
 midpoint method is used. How to perform rooting with an outgroup is show but 
 not evaluated. 
 
