@@ -192,7 +192,9 @@ with Arithmetic Mean) algorithm to cluster sequences into a rooted cladogran
 (ultrametric tree if sequences evolve clockwise). To evaluate the reliability 
 of the branches, a bootstrap analysis repeatedly resamples alignment columns, 
 rebuilds the tree, and counts how often each grouping reappears. These percentages 
-are added to the nodes as bootstrap support values. Finally, the tree is plotted with
+are added to the nodes as bootstrap support values. The number of bootstrap repetitions
+can be specified under the `B` argument (for real analyses use larger values, e.g. `B=1000`). 
+Finally, the tree is plotted with
 bootstrap values indicating the confidence in each inferred relationship.
 The `upgma_bootstrap_aa` that performs this analysis only requires the multiple 
 alignment as input. The distance matrix is recomputed by the function on the fly.
@@ -200,7 +202,8 @@ alignment as input. The distance matrix is recomputed by the function on the fly
 ```{r example6, eval=TRUE, message=FALSE}
 msa_bios <- readAAMultipleAlignment("data/phyloAnalysis/msa.fasta", format="fasta")
 m  <- as.matrix(unmasked(msa_bios))   
-tree_upgma <- upgma_bootstrap_aa(m)
+# tree_upgma <- upgma_bootstrap_aa(m)
+tree_upgma <- upgma_bootstrap_aa(m, B = 100, model = "JTT")
 plot_tree_bootstrap(tree_upgma, cutoff = 70, main = "")
 ```
 
@@ -216,7 +219,8 @@ constant evolutionary rate across lineages (no molecular clock). To assess the
 reliability of each branch, a bootstrap analysis is performed: the alignment
 columns are resampled many times, the NJ tree is rebuilt for each replicate,
 and the frequency with which each grouping reappears is recorded as a bootstrap
-percentage. The resulting values are included in the internal branches of the
+percentage. The number of bootstrap repetitions can be specified under the `B` argument.
+The resulting values are included in the internal branches of the
 consensus NJ tree. Because NJ produces an unrooted tree, it is then rooted
 either by the midpoint method (placing the root halfway between the two most
 distant tips) or by specifying a known outgroup sequence. In this example the only the
@@ -228,7 +232,7 @@ distance and bootstrap percentages that indicate how strongly each clade is supp
 ```{r example7, eval=TRUE, message=FALSE}
 msa_bios <- readAAMultipleAlignment("data/phyloAnalysis/msa.fasta", format="fasta")
 m  <- as.matrix(unmasked(msa_bios)) 
-tree_nj <- nj_bootstrap_aa(m, B = 500, model = "JTT")
+tree_nj <- nj_bootstrap_aa(m, B = 100, model = "JTT")
 # Midpoint rooting 
 tree_nj_rooted <- phangorn::midpoint(tree_nj)
 # Outgroup rooting 

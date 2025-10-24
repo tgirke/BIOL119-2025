@@ -83,7 +83,7 @@ upgma_bootstrap_aa <- function(aln_mat, B = 100, model = "JTT", seed = 1) {
 ## Usage:
 # msa_bios <- readAAMultipleAlignment("alignment.fasta", format="fasta")
 # m <- as.matrix(unmasked(msa_bios))                               # each row = sequence
-# tree_upgma <- upgma_bootstrap_aa(m)
+# tree_upgma <- upgma_bootstrap_aa(m, B = 100, model = "JTT", seed = 1)
 
 ## Plot UPGMA Tree with Bootstrap Values
 plot_tree_bootstrap <- function(tree, tip_cex=.9, bs_cex=.7,
