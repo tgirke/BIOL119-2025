@@ -75,7 +75,7 @@ By working with the GSE247401 dataset, students will:
 
 1. Comprehend how RNA-seq data reflects the activity of thousands of genes across samples.
 2. Learn how statistical tools like DESeq2 identify significant gene changes between conditions.
-3. Gain practical experience with real count data, normalization techniques, and visualization methods (PCA, volcano plots, heatmaps).
+3. Gain practical experience with real count data, normalization techniques, and visualization methods (volcano plots and heatmaps).
 4. Connect computational results to biological understanding by exploring activated genes and pathways after vaccination.
 5. Appreciate the process of converting large raw RNA-seq data files into meaningful insights, such as identifying immune and antiviral responses in blood following vaccination.
 
@@ -327,21 +327,19 @@ vaccination triggers a coordinated activation of immune genes, while overall
 variability between individuals remains controlled by using a paired
 experimental design. To identify expression patterns, the subsetted matrix is
 then subjected to hierarchical clustering, which groups together genes and
-samples with similar expression patterns. The resulting heatmap displays both
-row-wise (gene) and column-wise (sample) dendrograms, showing how genes and
-samples cluster based on Pearson correlation. The cell colors represent
-relative expression levels after row-wise scaling (scale = "row"), which
-enhances contrast and makes it easier to see which genes are up- or
-down-regulated in each sample. In this COVID-19 vaccination dataset,
+samples with similar expression patterns. Pearson correlation coeffients are
+used as similarity metric for clustering in both dimensions. The resulting
+heatmap displays both row-wise (gene) and column-wise (sample) dendrograms,
+showing how genes and samples cluster based on Pearson correlation. The cell
+colors represent relative expression levels after row-wise scaling (scale =
+"row"), which enhances contrast and makes it easier to see which genes are up-
+or down-regulated in each sample. In this COVID-19 vaccination dataset,
 post-vaccination samples tend to cluster together due to coordinated activation
 of immune and interferon-related genes. Users interested in the underlying
 clustering methods can explore additional R tutorials on hierarchical
 clustering and heatmap visualization.
 
 ```{r chunk7a, eval=TRUE, message=FALSE}
-# Heatmap with Pearson correlation for rows AND columns using pheatmap
-library(pheatmap)
-
 # 1) VST (DESeq2) expression matrix
 vsd_mat <- assay(vst(dds, blind = TRUE))
 
@@ -382,7 +380,7 @@ pheatmap(mat,
          show_colnames = TRUE,
          fontsize_row = 7,
          fontsize_col = 9,
-         main = "DESea2: Top 30 DE genes (Pearson clustering on rows & columns)",
+         main = "Top 30 DEGs",
          border_color = NA)
 ```
 
@@ -491,7 +489,7 @@ should look for:
 + whether most are up-regulated (immune activation) or down-regulated
 + how these changes fit the experiment’s goal—here, understanding how vaccination triggers the body’s early antiviral response
 
-```{r chunk9c, eval=TRUE, message=FALSE}
+```{r chunk9c, eval=FALSE, message=FALSE}
 top_path <- er_readable@result$ID[1]
 browseURL(paste0("https://reactome.org/PathwayBrowser/#/", top_path))
 ```
