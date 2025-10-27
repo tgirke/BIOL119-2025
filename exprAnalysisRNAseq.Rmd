@@ -43,6 +43,9 @@ design allows for direct comparison of gene expression changes within each
 person. The pre-generated gene-level read counts from this data set will be downloaded
 from the corresponding GEO entry: [GSE247401](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE247401).
 
+![](./data/exprAnalysisRNAseq/overview_illustration.png)
+<div align="center">Figure 1: Study design of Odak et al (2024).</div></br>
+
 We anticipate the results will show activation of immune-related genes,
 particularly those involved in interferon response and antiviral defense,
 consistent with findings from the original study.
