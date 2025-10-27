@@ -230,7 +230,8 @@ Beginners can ignore this level of detail.
 _[Line 1]_ Creates a DESeq2 dataset object combining the count data and sample
 information. The `design = ~ subject + time` formula tells `DESeq2` to control
 for differences between subjects (subject) and test the main effect of time
-(pre vs post). _[Line 2]_ Removes genes with very low total counts (fewer than
+(pre vs post). Note: this is a simplified design formula for demonstration purposes
+of this study. _[Line 2]_ Removes genes with very low total counts (fewer than
 10 reads across all samples). These genes do not provide reliable statistical
 signals. _[Line 3]_ Runs the full DESeq2 workflow: normalization, dispersion
 estimation, and model fitting for each gene. _[Line 4]_ Extracts the comparison
@@ -478,29 +479,45 @@ In detail, the command automatically opens the Reactome Pathway Browser in as us
 browser for one of the top enriched pathways identified in the analysis. The
 object `top_path` stores the Reactome pathway ID (for example, R-HSA-913531 for
 Interferon Signaling). When running this command, it builds the full URL to
-that pathway and tells R to open it, similar to clicking a link.
+that pathway and tells R to open it, similar to clicking a link. Clicking this 
+[R-HSA-913531 pathway](https://reactome.org/PathwayBrowser/#/R-HSA-913531) link
+will open the same Reactome pathway for testing without running the code.
 
 Once the page opens, one can see an interactive diagram showing how different
 molecules and genes interact in that pathway. Each node or reaction represents
 a protein, gene product, or biological event, and one can hover or click to
 read detailed descriptions. If this pathway came up as significantly enriched
 in the results, it means that many of the genes activated after vaccination
-participate in that biological process. When explorint these pathways, one
+participate in that biological process. When exploring these pathways, one
 should look for:
 
 + where significant genes appear,
-+ whether most are up-regulated (immune activation) or down-regulated
-+ how these changes fit the experiment’s goal—here, understanding how vaccination triggers the body’s early antiviral response
++ whether most are up-regulated (immune activation) or down-regulated and
++ how these changes fit the experiment’s goal—here, understanding how vaccination triggers the body’s early antiviral response.
 
 ```{r chunk9c, eval=FALSE, message=FALSE}
 top_path <- er_readable@result$ID[1]
 browseURL(paste0("https://reactome.org/PathwayBrowser/#/", top_path))
 ```
 
+Reactome's pathways are highly useful for biology and biomedical research
+because they provide a curated, organized view of biological processes and
+molecular interactions, offering a clear framework for learning complex
+cellular mechanisms. In the context of large-scale data, Reactome helps
+students interpret experimental results by linking differentially expressed
+genes or proteins to specific, well-defined biological pathways, enabling
+functional analysis and interpretation of the 'omics' data.
+
 The following shows all human pathways in Reactome as a fireworks plot. This is a static 
 image not created by the above code directly. 
 
 ![](./data/exprAnalysisRNAseq/reactome_bigpicture.jpeg)
+
+# Session Info
+
+```{r sessionInfo}
+sessionInfo()
+```
 
 # References
 
