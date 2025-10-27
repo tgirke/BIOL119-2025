@@ -6,5 +6,5 @@ These are the links to open the renderd HTML vignettes included in the repos:
 
 1. [Intro2R.html](https://girke.bioinformatics.ucr.edu/BIOL119-2025/Intro2R.html)
 2. [phyloAnalysis.html](https://girke.bioinformatics.ucr.edu/BIOL119-2025/phyloAnalysis.html)
-3. [exprAnalysisDemo.html](https://girke.bioinformatics.ucr.edu/BIOL119-2025/exprAnalysisDemo.html)
+3. [exprAnalysisRNAseq.html](https://girke.bioinformatics.ucr.edu/BIOL119-2025/exprAnalysisRNAseq.html)
 
