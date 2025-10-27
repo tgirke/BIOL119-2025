@@ -99,7 +99,7 @@ interfaces are extremely similar and the way to run R code is nearly identical.
 1. Create a free personal account on Posit (RStudio) Cloud
    [here](https://posit.cloud/). 
 2. Next click the <span style="background-color: #f1c40f;">Posit/RStudio Studio Cloud assignment link</span></a> provided under the same name
-   coding on the corresponding assignment page on Canvas
+   on the corresponding assignment page on Canvas
    [here](https://elearn.ucr.edu/courses/192776/assignments/925649). Note,
    the latter page is private to this class.
 3. Start the pregenerated assignment by clicking the `BIOL119-2025-SA5-HW`. This will create a copy of the assignment in a student's account.  
