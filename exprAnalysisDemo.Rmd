@@ -57,9 +57,9 @@ identical.
 ### Simple link-based approach
 Note, students who are entirely new to R should use this approach (1.1.1) instead of (1.1.2):
 
-1. Create a free personal account on Posit (RStudio) Cloud
+1. Create a free personal account on Posit/RStudio Cloud
    [here](https://posit.cloud/). 
-2. Next click the <span style="background-color: #f1c40f;">Posit (RStudio) Cloud assignment link</span></a> provided under the same name
+2. Next click the <span style="background-color: #f1c40f;">Posit/RStudio Cloud assignment link</span></a> provided under the same name
    coding on the corresponding assignment page on Canvas
    [here](https://elearn.ucr.edu/courses/147748/assignments/750221). Note
    the latter page is private to this class.
