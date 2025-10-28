@@ -360,7 +360,7 @@ of immune and interferon-related genes. Users interested in the underlying
 clustering methods can explore additional R tutorials on hierarchical
 clustering and heatmap visualization.
 
-Note: For visibility the heatmap is plotted only for the top 30 DEGs obtained 
+Note: For visibility the heatmap is plotted only for the top 30 DEGs 
 stored in the `sig_genes` table generated under the _Filter DEGs_ section above. 
 To include all `r nrow(sig_genes)` from `sig_genes` in the heatmap, remove
 in the below code the subsetting with `[1:30]`.
