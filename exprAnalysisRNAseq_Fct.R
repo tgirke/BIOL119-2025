@@ -189,3 +189,27 @@ annotate_genes_simple <- function(res_df, gene_col = "gene") {
   out
 }
 
+#############################################
+## Pretty number printing in DT::datatable ##
+#############################################
+## Combines rounding and scientific number notation
+pretty_num <- function(dt, digits_fixed = 4, digits_sci = 3,
+                       sci_lower = 1e-4, sci_upper = 1e4) {
+  if (!requireNamespace("data.table", quietly = TRUE))
+    stop("data.table package required")
+
+  data.table::setDT(dt)
+  dt[, lapply(.SD, function(col) {
+    if (!is.numeric(col)) return(col)
+    vapply(col, function(val) {
+      if (is.na(val)) return(NA_character_)
+      a <- abs(val)
+      if (a >= sci_upper || (a > 0 && a < sci_lower)) {
+        formatC(val, format = "e", digits = digits_sci)       # scientific only for extremes
+      } else {
+        formatC(round(val, digits_fixed), format = "f", digits = digits_fixed)  # fixed
+      }
+    }, character(1))
+  })]
+}
+
