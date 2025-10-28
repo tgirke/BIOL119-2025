@@ -268,10 +268,11 @@ clustering and heatmap visualization in the next steps.
 
 ```{r chunk6, eval=TRUE, message=FALSE}
 res_annot <- annotate_genes_simple(res_tbl)  # adds gene symbols and functional description
+res_annot <- res_annot[order(res_annot$padj),] # Sort by padj column
 write.csv(res_annot, # Writes full result table to a file 
           paste0(result_dir, out_prefix, "_DESeq2_results_annotated.csv"),
           row.names = FALSE)
-DT::datatable(pretty_num(res_annot[1:100, c(10, 9, 1:5)]), options = list(scrollX = TRUE)) # To show full table, remove [1:100, ]
+DT::datatable(pretty_num(res_annot[1:100, c(10, 8, 1:5)]), options = list(scrollX = TRUE)) # To show full table, remove [1:100, ]
 res_tbl$gene <- rownames(res_tbl) # Extracts gene IDs from row name slot 
 res_tbl <- res_tbl[order(res_tbl$padj), ] # Sorts by adjusted p-value
 vsd_mat <- assay(vst(dds, blind = TRUE)) # See below
@@ -295,6 +296,7 @@ interpretation analyses, including GO or Reactome enrichment analysis.
 
 ```{r chunk6a, eval=TRUE, message=FALSE}
 sig_genes <- subset(res_annot, abs(log2FoldChange) > 1 & padj < 0.05)
+sig_genes <- sig_genes[order(sig_genes$padj),] # Sort by padj column
 DT::datatable(pretty_num(sig_genes[,c(10, 8, 1:5)]), options = list(scrollX = TRUE))
 ```
 The number of DEGs passing this filter is `r nrow(sig_genes)`.
@@ -340,7 +342,7 @@ volcano_simple(res_tbl,
 # Clustering and Heatmap
 
 This code produces a heatmap, a visual summary showing how the normalized
-expression of the top 30 most significantly changed genes differs before and
+expression of the top most significantly changed genes differs before and
 after vaccination across all participants. It visually confirms that
 vaccination triggers a coordinated activation of immune genes, while overall
 variability between individuals remains controlled by using a paired
@@ -358,36 +360,18 @@ of immune and interferon-related genes. Users interested in the underlying
 clustering methods can explore additional R tutorials on hierarchical
 clustering and heatmap visualization.
 
+Note: For visibility the heatmap is plotted only for the top 30 DEGs obtained 
+stored in the `sig_genes` table generated under the _Filter DEGs_ section above. 
+To include all `r nrow(sig_genes)` from `sig_genes` in the heatmap, remove
+in the below code the subsetting with `[1:30]`.
+
 ```{r chunk7a, eval=TRUE, message=FALSE}
-# 1) VST (DESeq2) expression matrix
-vsd_mat <- assay(vst(dds, blind = TRUE))
-
-# 2) Top genes by adjusted p-value (DESeq2 results)
-res_tbl$gene <- rownames(res_tbl)
-sel <- head(res_tbl$gene[order(res_tbl$padj)], 30)
-sel <- sel[sel %in% rownames(vsd_mat)]
-stopifnot(length(sel) >= 2)
-
-mat <- vsd_mat[sel, , drop = FALSE]
-
-# 3) Clear column labels (Subject_Time) so pairs are visible
-colnames(mat) <- paste(coldata$subject, coldata$time, sep = "_")
-
-# 4) Sample annotations (column side bar)
-annotation_col <- data.frame(
-  time    = coldata$time,
-  subject = coldata$subject,
-  row.names = colnames(mat)
-)
-
-# Optional: custom colors for 'time'
-ann_colors <- list(
-  time = c(pre = "#3182BD", post = "#E41A1C")
-  # subject can be colored too, but often many levels → let pheatmap auto-pick
-)
-
-# 5) pheatmap with Pearson on both axes (distance = "correlation")
-# note mat used here: is DESeq2’s variance-stabilized, log₂-scaled expression values
+sig_gene_ids <- sig_genes[order(sig_genes$padj), "symbol"] # Extract gene symbols sorted by padj
+sig_gene_ids <- sig_gene_ids[1:30] # Subset to top 30 for better visibility in heatmap
+mat <- vsd_mat[sig_gene_ids, , drop = FALSE] # Subset rows in vsd_mat to sig_gene_ids
+colnames(mat) <- paste(coldata$subject, coldata$time, sep = "_") # Assign column proper column names 
+annotation_col <- data.frame(time = coldata$time, subject = coldata$subject, row.names = colnames(mat)) 
+ann_colors <- list(time = c(pre = "#3182BD", post = "#E41A1C")) # Optional: custom colors for 'time'
 pheatmap(mat,
          scale = "row",                           
          clustering_distance_rows = "correlation",
@@ -399,8 +383,7 @@ pheatmap(mat,
          show_colnames = TRUE,
          fontsize_row = 7,
          fontsize_col = 9,
-         main = "Top 30 DEGs",
-         border_color = NA)
+         main = paste("Top", length(sig_gene_ids), "DEGs"))
 ```
 
 # GO Term Enrichment Analysis
