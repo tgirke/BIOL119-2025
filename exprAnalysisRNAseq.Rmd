@@ -237,6 +237,7 @@ res <- results(dds, contrast = c("time", "post", "pre"))
 if (requireNamespace("apeglm", quietly = TRUE)) { cf <- resultsNames(dds)[grep("^time_post", resultsNames(dds))][1]; if (!is.na(cf)) res <- lfcShrink(dds, coef = cf, type = "apeglm") }
 res_tbl <- as.data.frame(res)
 ```
+
 The following paragraph gives a short explanation for each code line in the above code chunk. 
 Beginners can ignore this level of detail.
 
